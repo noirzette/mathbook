@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************-->
 
-<mathbook>
+<pretext>
 
     <docinfo>
         <macros>
@@ -28,6 +28,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </docinfo>
 
     <book>
+        <title>An EPUB Sampler</title>
 
         <frontmatter>
             <titlepage>
@@ -36,8 +37,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 </author>
             </titlepage>
         </frontmatter>
-
-        <title>An EPUB Sampler</title>
 
         <chapter>
             <title>One</title>
@@ -187,4 +186,4 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         </chapter>
 
     </book>
-</mathbook>
+</pretext>

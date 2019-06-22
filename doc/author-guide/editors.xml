@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- This file is part of the documentation of MathBook XML   -->
+<!--   This file is part of the documentation of PreTeXt      -->
 <!--                                                          -->
-<!--    MathBook XML Author's Guide                           -->
+<!--      PreTeXt Author's Guide                              -->
 <!--                                                          -->
 <!-- Copyright (C) 2013-2016  Robert A. Beezer                -->
 <!-- See the file COPYING for copying conditions.             -->
 
 <appendix xml:id="editors">
-    <title>(*) Text Editors</title>
+    <title>Text Editors, Spell Check</title>
 
     <introduction>
-        <p>This appendix has information about using various text editors efficiently with MathBook <init>XML</init> source.  The choice of an editor that suits you is a big part of being a productive author.  Despite not being open source, we are partial to Sublime Text, due to its unlimited trial period, reasonable licensing (cost and terms), range of features, and cross-platform support.  So we lead with Sublime Text, but also include Emacs and XML Copy Editor.</p>
+        <p>This appendix has information about using various text editors efficiently with <pretext/> source, along with suggestions for spell-checking.  The choice of an editor that suits you is a big part of being a productive author.  Despite not being open source, we are partial to Sublime Text, due to its unlimited trial period, reasonable licensing (cost and terms), range of features, community support (plug-ins), and cross-platform support (Linux, Mac, and Windows).  So we lead with Sublime Text, but also include Emacs and XML Copy Editor.  A summary table of schema-aware editors can be found at <xref ref="editors-supporting-schema" />.</p>
     </introduction>
 
     <section xml:id="section-sublime-text">
         <title>Sublime Text</title>
-        <author>
-            <personname>Dave Rosoff</personname>
-        </author>
+        <author>Dave Rosoff</author>
 
         <introduction>
             <p>Sublime Text is a fast cross-platform editor with thousands of user-contributed packages implemented in its Python <init>API</init>. It is not free or open-source, although most of the user-contributed packages are both. Development is active as of June<nbsp />2016.</p>
@@ -36,12 +34,11 @@
             <title>Package Control</title>
             <p>Sublime Text's Python <init>API</init> exposes a lot of the Sublime Text internals to plugin and package authors. Packages extend Sublime Text's functionality, much like Emacs major modes. A package usually consists of some Python scripts that define Sublime Text events and actions, some text-based configuration files (<init>XML</init>/<init>JSON</init>/<init>YAML</init> files defining language syntax, symbol recognition, custom snippet insertion triggers and contexts, keybindings for new and old commands, <etc />), and perhaps some other stuff too. These typically get bundled into a <c>.zip</c> archive that is disguised with the unusual extension <c>.sublime-package</c>. These archives live in the Packages directory, accessible via the Preferences menu (the Sublime Text/Preferences menu on <init>OS X</init>). Sublime Text monitors the <c>Packages</c> directory for changes and reloads all affected plugins on the fly.</p>
             <p>The first thing you should do after installing Sublime Text is install the Package Control package. This package manager operates within Sublime Text to automatically fetch updates for packages you have installed (unless you disable this feature). You can also list currently installed packages, find new packages to investigate, remove packages, <etc /></p>
-            <p>Thousands of user-contributed packages are available for easy installation via Package Control. It is possible to maintain packages by hand, since most package authors publish via GitHub, but Package Control is the universally recommended method of obtaining, managing, and removing packages for your installation.</p>
-            <ol>
+            <p>Thousands of user-contributed packages are available for easy installation via Package Control. It is possible to maintain packages by hand, since most package authors publish via GitHub, but Package Control is the universally recommended method of obtaining, managing, and removing packages for your installation.<ol>
                 <li><p>Visit the <url href="https://packagecontrol.io/">Package Control download site</url>.</p></li>
                 <li><p>Find the Sublime Text console command (make sure the correct version of Sublime Text is selected) and copy it to the clipboard.</p></li>
                 <li><p>Open the Sublime Text console (<c>Ctrl-`</c>) and paste the command into the window that appears, then press <c>Enter</c>.</p></li>
-            </ol>
+            </ol></p>
             <p>Having installed Package Control, you can use the command palette to deploy its commands, such as Install Package, List Packages, and Remove Package. See the documentation for more. A few packages that are especially useful are recommended throughout this section, and summarized in <xref ref="subsection-recommended-packages" />.</p>
         </subsection>
         <subsection xml:id="subsection-keyboard-shortcuts">
@@ -62,14 +59,13 @@
             <subsubsection xml:id="subsubsection-explicit-projects">
                 <title>Explicit Projects</title>
                 <p>To save your project explicitly, use the Project menu to choose Save As Project<ellipsis /> and choose an appropriate name and location. For a MathBook <init>XML</init> project, this would probably be the same name and location as the document root file. Use the Project menu commands to open and close your project.</p>
-                <p>There are a few benefits to using an explicit project to group files.</p>
-                <ul>
+                <p>There are a few benefits to using an explicit project to group files.<ul>
                     <li><p>You can group together files and folders in different parts of the filesystem, instead of being restricted to subtrees.</p></li>
                     <li><p>You can have project-specific settings that are different from Sublime Text's defaults and different from your user preferences (<xref provisional="subsection-settings" />).</p></li>
                     <li><p>Sublime's project workspaces will remember which files you had open when you last closed the project, and at which positions.</p></li>
                     <li><p>If you get very fancy, you can have multiple workspaces for the same project, with different filters and views for different purposes.</p></li>
                     <li><p>It is fine to include <c>.sublime-project</c> files in Git repositories, but <c>.sublime-workspace</c> files should <alert>never</alert> be so included (according to the Sublime Text documentation).</p></li>
-                </ul>
+                </ul></p>
             </subsubsection>
             <subsubsection xml:id="subsubsection-using-the-sidebar">
                 <title>Using the Sidebar</title>
@@ -85,8 +81,7 @@
                 <p>Any praise about multiple selections is an understatement.</p>
             </blockquote>
             <p>The base functionality of multiple selections is simple. Hold down the <c>Ctrl</c> key (<c>Cmd</c> on <init>OS X</init>), and click somewhere in the open view to get a second cursor. Continue to add more cursors. All of them will behave together when you type: text will be inserted, most snippets or other text commands function as usual, etc. Even mouse commands work in an intuitive way with multiple selections. </p>
-            <p>It is hard to explain exactly what makes multiple selections so powerful. You just have to try it for yourself. Here is a typical example. In a structured document, many bits of text occur quite frequently<mdash />element and attribute names, for example. You may want to update several occurrences of a fragment at once<mdash />making several identical changes. Sublime's Quick Add Next command (<c>Ctrl+D</c>/<c>Cmd+D</c>) makes this a snap.</p>
-            <ol>
+            <p>It is hard to explain exactly what makes multiple selections so powerful. You just have to try it for yourself. Here is a typical example. In a structured document, many bits of text occur quite frequently<mdash />element and attribute names, for example. You may want to update several occurrences of a fragment at once<mdash />making several identical changes. Sublime's Quick Add Next command (<c>Ctrl+D</c>/<c>Cmd+D</c>) makes this a snap.<ol>
                 <li>
                     <p>Place the caret somewhere in the word you'd like to modify.</p>
                 </li>
@@ -102,12 +97,11 @@
                 <li>
                     <p>Make your modification, only one time.</p>
                 </li>
-            </ol>
+            </ol></p>
             <p>Another example that occurs frequently when authoring <init>XML</init> is when you use the Wrap with Tag snippet (<c>Alt+Shift+W</c>/<c>Ctrl+Shift+W</c>). This snippet wraps the selection(s) in a <tag>p</tag> tag, with the tag name highlighted in both the start and end tags. If the <c>p</c> element is not what you wanted, just type. Both tags are replaced. This is a huge benefit to the <init>XML</init> author that makes essential use of multiple selections, even though you are barely aware of this as you use the feature.</p>
             <p>Column selection allows you to select a rectangular area of a file. This is unbelievably useful when editing a structured document. There are lots of ways to do it (<url href="http://docs.sublimetext.info/en/latest/editing/editing.html">see the Sublime Text documentation</url> for a mostly exhaustive list), but the most frequently used is to hold down <c>Shift</c> while clicking and dragging with the right mouse button (on <init>OS X</init>, hold down <c>Option</c> while dragging with the right mouse button). See the documentation for keyboard-based shortcuts.</p>
             <p>Column selection becomes even more useful when used in combination with the keyboard shortcuts for moving and selecting, such as <c>Ctrl+Shift+Right</c> (select to end of word) and <c>Shift+End</c> (select to end of line).</p>
-            <p>Yet another example of the appallingly great utility of multiple selection comes when copying and pasting from a different file format. Suppose you have copied some lines of text and wish each such line to become a list item in your MathBook <init>XML</init> source.</p>
-            <ol>
+            <p>Yet another example of the appallingly great utility of multiple selection comes when copying and pasting from a different file format. Suppose you have copied some lines of text and wish each such line to become a list item in your MathBook <init>XML</init> source.<ol>
                 <li>
                     <p>Use column selection, as described above, to select each line individually.</p>
                 </li>
@@ -126,7 +120,7 @@
                 <li>
                     <p>Use Wrap with Tag to wrap each of the selected lines with matched begin/end <tag>p</tag> tags, all at once.</p>
                 </li>
-            </ol>
+            </ol></p>
             <p>This does take a little mouse-work, but the keystroke savings can be considerable. (The Emmet package, described in <xref ref="subsection-emmet" />, provides an even quicker way to do this task and much more complicated ones.)</p>
             <p>There are so many incredibly handy ways to use multiple selections that we will forgo any further examples to leave the reader the pleasure of discovering her own favorites. One particularly helpful package is Text Pastry, which provides some autonumbering and text insertion commands that work nicely with multiple selections. There are also a handful of packages that extend multiple selection functionality, such as PowerCursors and MultiEditUtils. PowerCursors allows you to add cursors and manipulate them without using the mouse. MultiEditUtils provides additional text processing commands designed to work with multiple selections.</p>
         </subsection>
@@ -206,22 +200,21 @@
                 <title>Usage</title>
                 <p>You can activate the package features by enabling the MathBook <init>XML</init> syntax. The syntax definition looks for <c>.mbx</c> file extensions, which most of us do not use (yet?). If your MathBook <init>XML</init> files end with <c>.xml</c>, you will either need to add a comment to the first line of each file (after the <init>XML</init> declaration):<cd>&lt;!-- MBX --&gt;</cd>or you will need to enable the syntax manually using the command palette. To enable it manually, open a MathBook <init>XML</init> file and press <c>Ctrl+Shift+P</c> (<c>Cmd+Shift+P</c> on <init>OS X</init>) and type <c>mbx</c>. Select <q>Set Syntax: MathBook <init>XML</init></q> from the list of options.</p>
                 <p>You should see the text <q>MathBook <init>XML</init></q> in the lower right corner if you have the status bar visible (command palette: Toggle Status Bar).</p>
-                <p>There are only a few features implemented so far.</p>
-                <ol>
+                <p>There are only a few features implemented so far.<ol>
                     <li>
-                        <p>If you have some sectioning in your MBX file, hit <c>Ctrl+R</c> (<c>Cmd+R</c> on <init>OS X</init>) to run the Go To Symbol command. You should see a panel showing all the subdivisions' <c>@xml:id</c> names.</p>
+                        <p>If you have some sectioning in your MBX file, hit <c>Ctrl+R</c> (<c>Cmd+R</c> on <init>OS X</init>) to run the Go To Symbol command. You should see a panel showing all the divisions' <attr>xml:id</attr> names.</p>
                     </li>
                     <li>
-                        <p>If you have been using <c>@xml:id</c> to label your stuff, try typing <c>&lt;xref ref="</c> (the beginning of a cross-reference). Sublime Text should show you a panel containing all <c>@xml:id</c> values along with the elements they go with. Choose one to insert it at the caret and close the <c>xref</c> tag. Alternatively, type <c>ref</c> and hit <c>Tab</c> to activate the <c>xref</c> snippet. Then hit <c>Ctrl+l</c> followed by <c>x</c> or <c>Ctrl+l</c> followed by <c>Ctrl+Space</c> to bring up the completions menu. There are several variants of the <c>ref</c> snippet, namely <c>refa</c>, <c>refp</c>, and <c>refpa</c>.</p>
+                        <p>If you have been using <attr>xml:id</attr> to label your stuff, try typing <c>&lt;xref ref="</c> (the beginning of a cross-reference). Sublime Text should show you a panel containing all <attr>xml:id</attr> values along with the elements they go with. Choose one to insert it at the caret and close the <c>xref</c> tag. Alternatively, type <c>ref</c> and hit <c>Tab</c> to activate the <c>xref</c> snippet. Then hit <c>Ctrl+l</c> followed by <c>x</c> or <c>Ctrl+l</c> followed by <c>Ctrl+Space</c> to bring up the completions menu. There are several variants of the <c>ref</c> snippet, namely <c>refa</c>, <c>refp</c>, and <c>refpa</c>.</p>
                     </li>
                     <li>
-                        <p>Type <c>chp</c>, <c>sec</c>, <c>ssec</c>, or <c>sssec</c> and hit <c>Tab</c> to activate the subdivision snippets. A blank <c>title</c> element is provided and the cursor positioned within it. As you type, the <c>@xml:id</c> field for the subdivision is filled with similar text mirroring the title you are entering.</p>
+                        <p>Type <c>chp</c>, <c>sec</c>, <c>ssec</c>, or <c>sssec</c> and hit <c>Tab</c> to activate the division snippets. A blank <c>title</c> element is provided and the cursor positioned within it. As you type, the <attr>xml:id</attr> field for the division is filled with similar text mirroring the title you are entering.</p>
                     </li>
-                </ol>
+                </ol></p>
             </subsubsection>
             <subsubsection xml:id="mbxtools-known-issues">
                 <title>Known issues</title>
-                <ol>
+                <p><ol>
                     <li>
                         <p>When manually adding an <c>xref</c> (not using the snippets or autocomplete), you will frequently see a spurious <q>Unrecognized format</q> error.</p>
                     </li>
@@ -235,7 +228,7 @@
                     <li>
                         <p>Nothing has been tested on OS X or Linux.</p>
                     </li>
-                </ol>
+                </ol></p>
             </subsubsection>
         </subsection>
         <subsection xml:id="subsection-sublime-linter">
@@ -244,7 +237,7 @@
         </subsection>
         <subsection xml:id="subsection-recommended-packages">
             <title>Recommended Packages</title>
-            <ol>
+            <p><ol>
                 <li><p>Package Control</p></li>
                 <li><p>Emmet</p></li>
                 <li><p>SideBarEnhancements</p></li>
@@ -254,14 +247,72 @@
                 <li><p>Git or SublimeGit</p></li>
                 <li><p>SublimeLinter</p></li>
                 <li><p>MBXTools</p></li>
-            </ol>
+            </ol></p>
         </subsection>
+    </section>
+
+    <section xml:id="aspell">
+        <title>Aspell</title> <!-- lowercase "s" -->
+
+        <p>Aspell is a spell-checker that you can easily configure to skip every piece of text used as a name of an <init>XML</init> element, and to skip <pretext/> elements that are likely to contain text that is not really made up of words and sentences.  For example, the element <tag>chapter</tag> might not be flagged by some mainstream spell checkers, but most likely the element <tage>mdash</tage> will be flagged by every spell checker, including the default configuration of Aspell.  And your <tag>m</tag> elements are full of <latex/>, not words.  Unfortunately, Aspell will not follow your <c>xi:xinclude</c> directives, so you need to run it against each of your files if you have modularized your source.  A command-line invocation would like like:<cd>
+            <cline>aspell -c ~/aota/src/fish.xml</cline>
+        </cd></p>
+
+        <p>Installation on Linux should be straightforward through your distribution's package manager.  On a Mac, the executable, and a dictionary for your language, can be installed easily via MacPorts (<xref provisional="macports"/>).  Recent improvements on Windows (ca. 2019-06-06) perhaps imply that <init>WSL</init> or the Ubuntu Linux install may provide an easy avenue.  Please report steps that result in a successful Windows installation, so we can include them here.</p>
+
+        <p>Configuration is achieved via a <q>hidden</q> file at the top of your home directory, namely <c>.aspell.conf</c>.  A Mac will try to keep you away from hidden files, which are the ones whose name begins with a period.  Let SublimeText give you an assist here.  In <xref ref="aspell-configuration"/> we show a first run at a useful configuration file.  You <em>definitely</em> want to add the <init>SGML</init> filter, since this is what tells Aspell that you are working on <init>XML</init> files<fn><init>SGML</init> is the precursor of <init>XML</init>.</fn>, so that all element names, attributes, etc. will not be checked.  The remainder is a suggested list of <pretext/> elements to skip.  Suggestions for additions are welcome here.</p>
+
+        <listing xml:id="aspell-configuration">
+            <caption>Aspell Configuration File</caption>
+
+            <program>
+                <input>
+                add-filter sgml
+
+                # elements with lots of code
+                # but not "pre", since it is like a "p"
+                add-sgml-skip c
+                add-sgml-skip cd
+                add-sgml-skip program
+                add-sgml-skip console
+                add-sgml-skip sage
+
+                # image formats
+                add-sgml-skip latex-image
+                add-sgml-skip asymptote
+                add-sgml-skip sageplot
+
+                # elements that display XML elements
+                add-sgml-skip tag
+                add-sgml-skip tage
+                add-sgml-skip attr
+
+                # initialisms and friends
+                add-sgml-skip init
+                add-sgml-skip acro
+                add-sgml-skip abbr
+
+                # math (latex)
+                add-sgml-skip m
+                add-sgml-skip me
+                add-sgml-skip men
+                add-sgml-skip md
+                add-sgml-skip mdn
+                add-sgml-skip usage # in "notation"
+
+                # not really content, by and large
+                add-sgml-skip docinfo
+                </input>
+            </program>
+        </listing>
+
+        <p>You can run Aspell in a sort of batch, non-interactive mode by adding the <c>-a</c> switch and then providing your source on standard input and directing results from standard output.  But I do not find it very useful.</p>
     </section>
 
     <section xml:id="emacs">
         <title>emacs</title>
 
-        <p>Jason Underdown reports on 2016-05-12 that emacs' <url href="https://www.gnu.org/software/emacs/manual/html_mono/nxml-mode.html">nXML mode</url> (<c>www.gnu.org/software/emacs/manual/html_mono/nxml-mode.html</c>) works well with a <acro>RELAX-NG</acro> schema.  While we work on building a hand-crafted <acro>RELAX-NG</acro> schema, you can use the <url href="http://www.thaiopensource.com/relaxng/trang.html">trang</url> (<c>www.thaiopensource.com/relaxng/trang.html</c>) tool to convert the MathBook XML <init>DTD</init> to a <acro>RELAX-NG</acro> schema.</p>
+        <p>Jason Underdown reports on 2016-05-12 that emacs' <url href="https://www.gnu.org/software/emacs/manual/html_mono/nxml-mode.html">nXML mode</url><fn><c>www.gnu.org/software/emacs/manual/html_mono/nxml-mode.html</c></fn> works well with a <acro>RELAX-NG</acro> schema.  While we work on building a hand-crafted <acro>RELAX-NG</acro> schema, you can use the <url href="http://www.thaiopensource.com/relaxng/trang.html">trang</url><fn><c>www.thaiopensource.com/relaxng/trang.html</c></fn> tool to convert the <pretext /> <init>DTD</init> to a <acro>RELAX-NG</acro> schema.</p>
 
         <blockquote>
             <p>You simply put your cursor at any point in the document, start a new tag with <c>&lt;</c> and then call the <c>completion-at-point</c> function (I bound it to the key-chord: <c>C-&lt;return&gt;</c>) to get a list of possible completions. Or you can start typing a few characters to narrow the list of possibilities. It will also let you know if the element you are trying to insert is invalid.</p>
@@ -272,13 +323,13 @@
     <section xml:id="xmlcopyeditor">
         <title>XML Copy Editor</title>
 
-        <p>Michael Doob reports on 2017-02-03 that <url href="http://xml-copy-editor.sourceforge.net/">XML Copy Editor</url> (<c>xml-copy-editor.sourceforge.net</c>) works well, in particular on Windows.  This is an open source program, for Windows and a variety of popular Linux distributions, that supports both <init>DTD</init> and <acro>RELAX-NG</acro> schemas.  It is less of a general programmer's editor and more like dedicated tools for working strictly with <init>XML</init> documents.</p>
+        <p>Michael Doob reports on 2017-02-03 that <url href="http://xml-copy-editor.sourceforge.net/">XML Copy Editor</url><fn><c>xml-copy-editor.sourceforge.net</c></fn> works well, in particular on Windows.  This is an open source program, for Windows and a variety of popular Linux distributions, that supports both <init>DTD</init> and <acro>RELAX-NG</acro> schemas.  It is less of a general programmer's editor and more like dedicated tools for working strictly with <init>XML</init> documents.</p>
     </section>
 
     <section xml:id="vi">
-        <title>(*) vi, vim</title>
+        <title>vi, vim</title>
 
-        <p>Contributions welcome.</p>
+        <p>You can find some information at Tobias Reif's <url href="https://pinkjuice.com/howto/vimxml/">pinkjuice.com</url><fn><c>pinkjuice.com/howto/vimxml/</c></fn>.  More contributions welcome.</p>
     </section>
 
 

@@ -25,7 +25,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!--                                               -->
 <!-- Copyright (C) 2010-2014  Robert A. Beezer     -->
 
-<section xml:id="groups-sage">
+<section xml:id="groups-sage" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Sage</title>
 
     <introduction>
@@ -173,7 +173,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
         <p>The final list comprehension deserves comment.  The <c>.domain()</c> method gives a lait of the symbols used for the permutation group <c>triangle</c> and then <c>rho2</c> is employed with syntax like it is a function (it <em>is</em> a function) to create the images that would occupy the bottom row.</p>
 
-        <p>With a double list comprehension we can list all six elements of the group in the <q>bottom row</q> format.  A good exercise would be to pair up each element with its name as given in Figure<nbsp /><xref ref="figure-s3-symmetry" />.</p>
+        <p>With a double list comprehension we can list all six elements of the group in the <q>bottom row</q> format.  A good exercise would be to pair up each element with its name as given in <xref ref="figure-s3-symmetry" />.</p>
 
         <sage>
             <input>[[a(x) for x in triangle.domain()] for a in triangle]</input>
@@ -182,7 +182,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
         <p>Different books, different authors, different software all have different ideas about the order in which to write multiplication of functions.  This textbook builds on the idea of composition of functions, so that <m>fg</m> is the composition <m>(fg)(x)=f(g(x))</m> and it is natural to apply <m>g</m> first.  Sage takes the opposite view and since we write <m>fg</m>, Sage will understand that we want to do <m>f</m> first.  Neither approach is wrong, and neither is necessarily superior, they are just different and there are good arguments for either one.  When you consult other books that work with permutation groups, you want to first determine which approach it takes.</p>
 
-        <p>The translation here between the text and Sage will be worthwhile practice.  Here we will reprise the discussion at the end of Section<nbsp /><xref ref="section-mod-n-sym" />, but reverse the order on each product to compute Sage-style and exactly mirror what the text does.</p>
+        <p>The translation here between the text and Sage will be worthwhile practice.  Here we will reprise the discussion at the end of <xref ref="section-mod-n-sym" />, but reverse the order on each product to compute Sage-style and exactly mirror what the text does.</p>
 
         <sage>
             <input>
@@ -346,18 +346,21 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <p>Elements of the quaternions were represented by certain permutations of the integers 1 through 8.  We can also build the group of <em>all</em> permutations of these eight integers.  It gets pretty big, so do not list it unless you want a lot of output!  (I dare you.)</p>
 
         <sage>
-            <input>
-            S8 = SymmetricGroup(8)
-            a = S8.random_element()
-            [a(x) for x in S8.domain()]     # random
-            </input>
+            <input><xi:include href="../code/symmetric-group-8.sage" parse="text" /></input>
             <output>[5, 2, 6, 4, 1, 8, 3, 7]</output>
+        </sage>
+
+        <p>As a demonstration of reusing chunks of Sage code, we duplicate the previous example.  But in each case the code lives in an external file, just once.  So if you wanted to use setup code in more than one division, you could put it in a file and incorporate it similarly.  Here we do not test the second instance, and so do not include expected output either.  Typically, you would do this copy somewhere further away.</p>
+
+        <sage doctest="not tested">
+            <input><xi:include href="../code/symmetric-group-8.sage" parse="text" /></input>
         </sage>
 
         <sage>
             <input>S8.order()</input>
             <output>40320</output>
         </sage>
+
 
         <p>The quaternions, <c>Q</c>, is a subgroup of the full group of all permutations, the symmetric group <m>S_8</m> or <c>S8</c>, and Sage regards this as a property of <c>Q</c>.</p>
 
@@ -366,7 +369,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <output>True</output>
         </sage>
 
-        <p>In Sage the complex numbers are known by the name <c>CC</c>.  We can create a list of the elements in the subgroup described in Example<nbsp /><xref ref="example-groups-c-star" />.  Then we can verify that this set is a subgroup by examining the Cayley table, using multiplication as the operation.</p>
+        <p>In Sage the complex numbers are known by the name <c>CC</c>.  We can create a list of the elements in the subgroup described in <xref ref="example-groups-c-star" />.  Then we can verify that this set is a subgroup by examining the Cayley table, using multiplication as the operation.</p>
 
         <sage>
             <input>

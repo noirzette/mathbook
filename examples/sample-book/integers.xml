@@ -53,7 +53,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
         <principle>
             <title>First Principle of Mathematical Induction</title>
-            <index><main>Induction</main><sub>first principle of</sub></index>
+            <idx><h>Induction</h><h>first principle of</h></idx>
             <statement>
                 <p>Let <m>S(n)</m> be a statement about integers for  <m>n \in {\mathbb N}</m> and suppose <m>S(n_0)</m> is true for some integer <m>n_0</m>.  If for all integers <m>k</m> with <m>k \geq n_0</m>, <m>S(k)</m> implies that <m>S(k+1)</m> is true, then <m>S(n)</m> is true for all integers <m>n</m> greater than or equal to <m>n_0</m>.</p>
             </statement>
@@ -62,7 +62,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- wording change.  Suggested by P. Diethelm.  TWJ 22/4/2013 -->
 
         <example xml:id="example-integers-induction-greater-than">
-          <title>An inequality for powers of <m>2</m></title>
+            <title>An Inequality for Powers of <m>2</m></title>
             <p>For all integers <m>n \geq 3</m>, <m>2^n \gt n + 4</m>. Since
                 <me>8 = 2^3 \gt 3 + 4 = 7,</me>
             the statement is true for <m>n_0 = 3</m>.  Assume that <m>2^k \gt k + 4</m> for <m>k \geq 3</m>.  Then <m>2^{k + 1} = 2 \cdot 2^{k} \gt 2(k + 4)</m>.  But 
@@ -72,7 +72,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 
         <example xml:id="example-integers-induction-divisible">
-          <title>Some integers divisible by <m>9</m></title>
+            <title>Some Integers Divisible by <m>9</m></title>
             <p>Every integer <m>10^{n + 1} + 3 \cdot 10^n + 5</m> is divisible by 9 for <m>n \in {\mathbb N}</m>.  For <m>n = 1</m>, 
                 <me>10^{1 + 1} + 3 \cdot 10 + 5 = 135 = 9 \cdot 15</me>
             is divisible by 9.  Suppose that <m>10^{k + 1} + 3 \cdot 10^k + 5</m> is divisible by 9 for <m>k \geq 1</m>.  Then<md>
@@ -82,7 +82,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         </example>
 
         <example xml:id="example-integers-binomial-theorem">
-          <title>The binomial theorem</title>
+            <title>The Binomial Theorem</title>
             <p>We will prove the binomial theorem using mathematical induction; that is, <me>(a + b)^n = \sum_{k = 0}^{n} \binom{n}{k} a^k b^{n - k},</me> where <m>a</m> and <m>b</m> are real numbers, <m>n \in \mathbb{N}</m>, and <me>\binom{n}{k} = \frac{n!}{k! (n - k)!}</me> is the binomial coefficient.  We first show that <me>\binom{n + 1}{k} = \binom{n}{k} + \binom{n}{k - 1}.</me> This result follows from<md>
                 <mrow>\binom{n}{k} + \binom{n}{k - 1} &amp; = \frac{n!}{k!(n - k)!} +\frac{n!}{(k-1)!(n - k + 1)!}</mrow>
                 <mrow>&amp; = \frac{(n + 1)!}{k!(n + 1 - k)!}</mrow>
@@ -109,7 +109,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
         <principle>
             <title>Second Principle of Mathematical Induction</title>
-            <index><main>Induction</main><sub>second principle of</sub></index>
+            <idx><h>Induction</h><h>second principle of</h></idx>
             <statement>
                 <p>Let <m>S(n)</m> be a statement about integers for  <m>n \in {\mathbb N}</m> and suppose <m>S(n_0)</m> is true for some integer <m>n_0</m>.  If <m>S(n_0), S(n_0 + 1), \ldots, S(k)</m> imply that <m>S(k + 1)</m> for <m>k \geq n_0</m>, then the statement <m>S(n)</m> is true for all integers <m>n \geq n_0</m>. </p>
             </statement>
@@ -117,7 +117,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
         <!-- wording change.  Suggested by P. Diethelm.  TWJ 22/4/2013 -->
 
-        <p>A  nonempty subset <m>S</m> of <m>{\mathbb Z}</m> is <term>well-ordered</term><index><main>Well-ordered set</main></index> if <m>S</m> contains a least element.  Notice that the set <m>{\mathbb Z}</m> is not well-ordered since it does not contain a smallest element.  However, the natural numbers are well-ordered.</p> 
+        <p>A  nonempty subset <m>S</m> of <m>{\mathbb Z}</m> is <term>well-ordered</term><idx><h>Well-ordered set</h></idx> if <m>S</m> contains a least element.  Notice that the set <m>{\mathbb Z}</m> is not well-ordered since it does not contain a smallest element.  However, the natural numbers are well-ordered.</p> 
 
         <principle>
             <title>Principle of Well-Ordering</title>
@@ -145,18 +145,16 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <p>The Principle of Mathematical Induction implies the Principle of Well-Ordering.  That is, every nonempty subset of <m>\mathbb N</m> contains a least element.</p>
             </statement>
             <proof>
-                <p>We must show that if <m>S</m> is a nonempty subset of the natural numbers, then <m>S</m> contains a least element.  If <m>S</m> contains 1, then the theorem is true by Lemma<nbsp /><xref ref="lemma-integers-smallest-number" />.  Assume that if <m>S</m> contains an integer <m>k</m> such that <m>1 \leq k \leq n</m>, then <m>S</m> contains a least element.  We will show that if a set <m>S</m> contains an integer less than or equal to <m>n + 1</m>, then <m>S</m> has a least element.  If <m>S</m> does not contain an integer less than <m>n+1</m>, then <m>n+1</m> is the smallest integer in <m>S</m>.  Otherwise, since <m>S</m> is nonempty, <m>S</m> must contain an integer less than or equal to <m>n</m>. In this case, by induction, <m>S</m> contains a least element.</p>
+                <p>We must show that if <m>S</m> is a nonempty subset of the natural numbers, then <m>S</m> contains a least element.  If <m>S</m> contains 1, then the theorem is true by <xref ref="lemma-integers-smallest-number" />.  Assume that if <m>S</m> contains an integer <m>k</m> such that <m>1 \leq k \leq n</m>, then <m>S</m> contains a least element.  We will show that if a set <m>S</m> contains an integer less than or equal to <m>n + 1</m>, then <m>S</m> has a least element.  If <m>S</m> does not contain an integer less than <m>n+1</m>, then <m>n+1</m> is the smallest integer in <m>S</m>.  Otherwise, since <m>S</m> is nonempty, <m>S</m> must contain an integer less than or equal to <m>n</m>. In this case, by induction, <m>S</m> contains a least element.</p>
             </proof>
         </theorem>
 
         <!-- wording change.  Suggested by P. Diethelm.  TWJ 22/4/2013 -->
 
-        <p>Induction can also be very useful in formulating definitions. For instance, there are two ways to define <m>n!</m>, the factorial of a positive integer <m>n</m>.</p>
-
-        <ul>
+        <p>Induction can also be very useful in formulating definitions. For instance, there are two ways to define <m>n!</m>, the factorial of a positive integer <m>n</m>.<ul>
             <li><p>The <em>explicit</em> definition: <m>n! = 1 \cdot 2 \cdot 3 \cdots (n - 1) \cdot n</m>.</p></li>
             <li><p>The <em>inductive</em> or <em>recursive</em> definition: <m>1! = 1</m> and <m>n! = n(n - 1)!</m> for <m>n \gt 1</m>.</p></li>
-        </ul>
+        </ul></p>
 
         <p>Every good mathematician or computer scientist knows that looking at problems recursively, as opposed to explicitly, often results in better understanding of complex issues.</p>
     </section>
@@ -170,7 +168,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
             <theorem xml:id="theorem-integers-division_algorithm">
                 <title>Division Algorithm</title>
-                <index><main>Division algorithm</main><sub>for integers</sub></index>
+                <idx><h>Division algorithm</h><h>for integers</h></idx>
                 <statement>
                     <p>Let <m>a</m> and <m>b</m> be integers, with <m>b \gt 0</m>.  Then there exist unique integers <m>q</m> and <m>r</m> such that 
                         <me>a = bq + r</me>
@@ -191,7 +189,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 </proof>
             </theorem>
 
-            <p>Let <m>a</m> and <m>b</m> be integers.  If <m>b = ak</m> for some integer <m>k</m>, we write <m>a \mid b</m>.  An integer <m>d</m> is called a <term>common divisor</term> of <m>a</m> and <m>b</m> if <m>d \mid a</m> and <m>d \mid b</m>.  The <term>greatest common divisor</term><index><main>Greatest common divisor</main><sub>of two integers</sub></index> of integers <m>a</m> and <m>b</m> is a positive integer <m>d</m> such that <m>d</m> is a common divisor  of <m>a</m> and <m>b</m> and if <m>d'</m> is any other common divisor of <m>a</m> and <m>b</m>, then <m>d' \mid d</m>. <notation><usage>a \mid b</usage><description><m>a</m> divides <m>b</m></description></notation><notation><usage>\gcd(a, b)</usage><description>greatest common divisor of <m>a</m> and <m>b</m></description></notation>  We write <m>d = \gcd(a, b)</m>; for example, <m>\gcd( 24, 36) = 12</m> and <m>\gcd(120, 102) = 6</m>.  We say that two integers <m>a</m> and <m>b</m> are <term>relatively prime</term> if <m>\gcd( a, b ) = 1</m>.</p>
+            <p>Let <m>a</m> and <m>b</m> be integers.  If <m>b = ak</m> for some integer <m>k</m>, we write <m>a \mid b</m>.  An integer <m>d</m> is called a <term>common divisor</term> of <m>a</m> and <m>b</m> if <m>d \mid a</m> and <m>d \mid b</m>.  The <term>greatest common divisor</term><idx><h>Greatest common divisor</h><h>of two integers</h></idx> of integers <m>a</m> and <m>b</m> is a positive integer <m>d</m> such that <m>d</m> is a common divisor  of <m>a</m> and <m>b</m> and if <m>d'</m> is any other common divisor of <m>a</m> and <m>b</m>, then <m>d' \mid d</m>. <notation><usage>a \mid b</usage><description><m>a</m> divides <m>b</m></description></notation><notation><usage>\gcd(a, b)</usage><description>greatest common divisor of <m>a</m> and <m>b</m></description></notation>  We write <m>d = \gcd(a, b)</m>; for example, <m>\gcd( 24, 36) = 12</m> and <m>\gcd(120, 102) = 6</m>.  We say that two integers <m>a</m> and <m>b</m> are <term>relatively prime</term> if <m>\gcd( a, b ) = 1</m>.</p>
 
             <theorem xml:id="theorem-integers-gcd">
                 <statement>
@@ -230,9 +228,10 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <subsection>
             <title>The Euclidean Algorithm</title>
 
-            <p>Among other things, Theorem<nbsp /><xref ref="theorem-integers-gcd" /> allows us to compute the greatest common divisor of two integers.</p>
+            <p>Among other things, <xref ref="theorem-integers-gcd" /> allows us to compute the greatest common divisor of two integers.</p>
 
             <example xml:id="example-integers-gcd">
+                <title>Greatest Common Divisor of Two Integers</title>
                 <p>Let us compute the greatest common divisor of <m>945</m> and <m>2415</m>.  First observe that<md>
                     <mrow>2415 &amp; = 945 \cdot 2 + 525</mrow>
                     <mrow>945 &amp; = 525 \cdot 1 + 420</mrow>
@@ -271,18 +270,18 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <mrow>&amp; = ra + sb.</mrow>
             </md></p>
 
-            <p>The algorithm that we have just used to find the greatest common divisor <m>d</m> of two integers <m>a</m> and <m>b</m> and to write <m>d</m> as the linear combination of <m>a</m> and <m>b</m> is known as the <term>Euclidean algorithm</term><index><main>Euclidean algorithm</main></index><index><main>Algorithm</main><sub>Euclidean</sub></index>.</p> 
+            <p>The algorithm that we have just used to find the greatest common divisor <m>d</m> of two integers <m>a</m> and <m>b</m> and to write <m>d</m> as the linear combination of <m>a</m> and <m>b</m> is known as the <term>Euclidean algorithm</term><idx><h>Euclidean algorithm</h></idx><idx><h>Algorithm</h><h>Euclidean</h></idx>.</p> 
 
         </subsection>
 
         <subsection>
             <title>Prime Numbers</title>
 
-            <p>Let <m>p</m> be an integer such that <m>p \gt 1</m>.  We say that <m>p</m> is a <term>prime number</term><index><main>Prime integer</main></index>, or simply <m>p</m> is <term>prime</term>, if the only positive numbers that divide <m>p</m> are 1 and <m>p</m> itself.  An integer <m>n \gt 1</m> that is not prime is said to be <term>composite</term><index><main>Composite integer</main></index>.</p>
+            <p>Let <m>p</m> be an integer such that <m>p \gt 1</m>.  We say that <m>p</m> is a <term>prime number</term><idx><h>Prime integer</h></idx>, or simply <m>p</m> is <term>prime</term>, if the only positive numbers that divide <m>p</m> are 1 and <m>p</m> itself.  An integer <m>n \gt 1</m> that is not prime is said to be <term>composite</term><idx><h>Composite integer</h></idx>.</p>
 
             <lemma xml:id="theorem-integers-prime-divisor">
-                <title>Euclid</title>
-                
+                <creator>Euclid</creator>
+
                 <statement>
                     <p>Let <m>a</m> and <m>b</m> be integers and <m>p</m> be a prime number.  If <m>p \mid ab</m>, then either <m>p \mid a</m> or <m>p \mid b</m>.</p>
                 </statement>
@@ -294,7 +293,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             </lemma>
 
             <theorem xml:id="theorem-integers-infinite-primes">
-                <title>Euclid</title>
+                <creator>Euclid</creator>
+
                 <statement>
                     <p>There exist an infinite number of primes.</p>
                 </statement>
@@ -307,7 +307,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
             <theorem xml:id="theorem-fund-theorem-arithmetic">
                 <title>Fundamental Theorem of Arithmetic</title>
-                <index><main>Fundamental Theorem</main><sub>of Arithmetic</sub></index>
+                <idx><h>Fundamental Theorem</h><h>of Arithmetic</h></idx>
                 <statement>
                     <p>Let <m>n</m> be an integer such that <m>n \gt 1</m>. Then
                         <me>n = p_1 p_2 \cdots p_k,</me>
@@ -318,7 +318,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <proof>
                     <p><em>Uniqueness.</em>  To show uniqueness we will use induction on <m>n</m>. The theorem is certainly true for <m>n = 2</m> since in this case <m>n</m> is prime.  Now assume that the result holds for all integers <m>m</m> such that <m>1 \leq m \lt n</m>, and 
                         <me>n = p_1 p_2 \cdots p_k = q_1 q_2 \cdots q_l,</me>
-                    where <m>p_1 \leq p_2 \leq \cdots \leq p_k</m> and <m>q_1 \leq q_2 \leq \cdots \leq q_l</m>. By Lemma<nbsp /><xref ref="theorem-integers-prime-divisor" />, <m>p_1  \mid  q_i</m> for some <m>i = 1, \ldots, l</m> and <m>q_1  \mid  p_j</m> for some <m>j = 1, \ldots, k</m>.  Since all of the <m>p_i</m>'s and <m>q_i</m>'s are prime, <m>p_1 = q_i</m> and  <m>q_1 = p_j</m>. Hence, <m>p_1 = q_1</m> since <m>p_1 \leq p_j = q_1 \leq q_i = p_1</m>.  By the induction hypothesis, 
+                    where <m>p_1 \leq p_2 \leq \cdots \leq p_k</m> and <m>q_1 \leq q_2 \leq \cdots \leq q_l</m>. By <xref ref="theorem-integers-prime-divisor" />, <m>p_1  \mid  q_i</m> for some <m>i = 1, \ldots, l</m> and <m>q_1  \mid  p_j</m> for some <m>j = 1, \ldots, k</m>.  Since all of the <m>p_i</m>'s and <m>q_i</m>'s are prime, <m>p_1 = q_i</m> and  <m>q_1 = p_j</m>. Hence, <m>p_1 = q_1</m> since <m>p_1 \leq p_j = q_1 \leq q_i = p_1</m>.  By the induction hypothesis, 
                         <me>n' = p_2 \cdots p_k = q_2 \cdots q_l</me>
                     has a unique factorization.  Hence, <m>k = l</m> and <m>q_i = p_i</m> for <m>i = 1, \ldots, k</m>.</p>
 
@@ -348,21 +348,23 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
     </section>
 
-<xi:include href="./exercises/integers.xml" />
+    <xi:include href="./sage/integers-sage.xml" />
+
+    <xi:include href="./exercises/integers.xml" />
 
     <exercises>
         <title>Programming Exercises</title>
 
         <exercise>
             <title>The Sieve of Eratosthenes</title>
-            <index><main>Sieve of Eratosthenes</main></index>  
+            <idx><h>Sieve of Eratosthenes</h></idx>  
             <statement>
                 <p>One method of computing all of the prime numbers less than a certain fixed positive integer <m>N</m> is to list all of the numbers <m>n</m> such that <m>1 \lt n \lt N</m>.  Begin by eliminating all of the multiples of 2.  Next eliminate all of the multiples of 3. Now eliminate all of the  multiples of 5.  Notice that 4 has already been crossed out.  Continue in this manner, noticing that we do not have to go all the way to <m>N</m>; it suffices to stop at <m>\sqrt{N}</m>. Using this method, compute all of the prime numbers less than <m>N = 250</m>.  We can also use this method to find all of the integers that are relatively prime to an integer <m>N</m>.  Simply eliminate the prime factors of <m>N</m> and all of their multiples.  Using this method, find all of the numbers that are relatively prime to <m>N= 120</m>.  Using the Sieve of Eratosthenes, write a program that will compute all of the primes less than an integer <m>N</m>. </p>
             </statement>
         </exercise>
 
         <exercise>
-            <index><main>Ackermann's function</main></index>
+            <idx><h>Ackermann's function</h></idx>
             <statement>
                 <p>Let <m>{\mathbb N}^0 = {\mathbb N} \cup \{ 0 \}</m>. Ackermann's function is the function <m>A :{\mathbb N}^0 \times {\mathbb N}^0 \rightarrow {\mathbb N}^0</m> defined by the equations<md>
                     <mrow>A(0, y) &amp; = y + 1,</mrow>
@@ -382,6 +384,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         </exercise>
 
     </exercises>
+
+    <xi:include href="./sage/integers-sage-exercises.xml" />
 
     <references>
         <title>References and Suggested Readings</title>
@@ -405,8 +409,5 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         Vanden Eynden, C. <title>Elementary Number Theory</title>. 2nd ed.  Waveland Press, Long Grove IL, 2001.</biblio>
 
     </references>
-
-    <xi:include href="./sage/integers-sage.xml" />
-    <xi:include href="./sage/integers-sage-exercises.xml" />
 
 </chapter>

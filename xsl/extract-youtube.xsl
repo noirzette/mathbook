@@ -19,14 +19,14 @@ You should have received a copy of the GNU General Public License
 along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************-->
 
-<!-- This stylesheet locates <latex-image-code> elements   -->
-<!-- and wraps them for LaTeX processing                   -->
-<!-- This includes the LaTeX macros present in docinfo     -->
-<!-- and the document's docinfo/latex-image-preamble       -->
+<!-- This stylesheet locates video/@youtube elements and -->
+<!-- prepares a Python dictionary necessary to extract a -->
+<!-- thumbnail for each video from the YouTube servers   -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:xml="http://www.w3.org/XML/1998/namespace"
     xmlns:exsl="http://exslt.org/common"
+    xmlns:str="http://exslt.org/strings"
     extension-element-prefixes="exsl"
 >
 
@@ -52,10 +52,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- YouTube ID, and internal id as a Python pair -->
 <xsl:template match="video[@youtube]">
+    <!-- replace commas with spaces, then normalize space,                       -->
+    <!-- then tack on a space at the end, then grab content prior to first space -->
+    <xsl:variable name="first-video-id" select="substring-before(concat(normalize-space(str:replace(@youtube, ',', ' ')), ' '), ' ')" />
     <xsl:text>('</xsl:text>
-    <xsl:value-of select="@youtube" />
+    <xsl:value-of select="$first-video-id" />
     <xsl:text>', '</xsl:text>
-    <xsl:apply-templates select="." mode="internal-id" />
+    <xsl:apply-templates select="." mode="visible-id" />
     <xsl:text>'), </xsl:text>
 </xsl:template>
 

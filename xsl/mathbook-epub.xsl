@@ -9,6 +9,7 @@
 
 <!-- Identify as a stylesheet -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
+                xmlns:epub="http://www.idpf.org/2007/ops"
                 xmlns:exsl="http://exslt.org/common"
                 xmlns:date="http://exslt.org/dates-and-times"
                 extension-element-prefixes="exsl date">
@@ -46,7 +47,8 @@
 <xsl:param name="exercise.backmatter.answer" select="'no'" />
 <xsl:param name="exercise.backmatter.solution" select="'no'" />
 
-
+<!-- We turn off permalinks on divisions, etc. -->
+<xsl:param name="html.permalink"  select="'none'" />
 
 <!-- Output as well-formed xhtml -->
 <!-- This may have no practical effect -->
@@ -80,9 +82,15 @@
 </xsl:variable>
 <xsl:variable name="mock-UUID">mock-123456789-0-987654321</xsl:variable>
 
-<!-- We hard-code the chunking level, need to pass this  -->
-<!-- through the mbx script or use a compatibility layer -->
-<xsl:param name="chunk.level" select="1" />
+<!-- We hard-code the chunking level.  Level 2 is       -->
+<!-- the default for books, which we presume throughout -->
+<xsl:variable name="chunk-level">
+    <xsl:choose>
+        <xsl:when test="$root/book/part">3</xsl:when>
+        <xsl:when test="$root/book">2</xsl:when>
+    </xsl:choose>
+</xsl:variable>
+
 <!-- We disable the ToC level to avoid any conflicts with chunk level -->
 <xsl:param name="toc.level" select="0" />
 
@@ -100,10 +108,11 @@
 <!-- Note that "docinfo" is at the same level and not structural, so killed -->
 <xsl:template match="/">
     <xsl:call-template name="banner-warning">
-        <xsl:with-param name="warning">EPUB conversion is experimental and not supported.  In particular,&#xa;the XSL conversion alone is not sufficient to create an EPUB.</xsl:with-param>
+        <xsl:with-param name="warning">EPUB conversion is experimental and not supported.  In particular,&#xa;the XSL conversion alone is not sufficient to create an EPUB.&#xa;See mathbook/examples/epub/build.sh for more information.</xsl:with-param>
     </xsl:call-template>
     <xsl:apply-templates select="mathbook" mode="deprecation-warnings" />
     <xsl:call-template name="setup" />
+    <xsl:call-template name="build-image-list" />
     <xsl:call-template name="package-document" />
     <xsl:apply-templates />
 </xsl:template>
@@ -122,7 +131,6 @@
 
 <!-- Read the code and documentation for "chunking" in xsl/mathbook-common.xsl -->
 
-<!-- At level 1, we can just kill book's summary page -->
 
 <xsl:template match="&STRUCTURAL;" mode="file-wrap">
     <xsl:param name="content" />
@@ -135,13 +143,17 @@
     </xsl:variable>
     <!-- do not use "doctype-system" here        -->
     <!-- do not create faux <!DOCTYPE html> here -->
-    <!-- NB:  Add  xmlns="http://www.w3.org/1999/xhtml"  to <html>,          -->
-    <!-- and we get plenty of top-level-ish  xmlns="" which do not validate -->
-    <exsl:document href="{$file}" method="xml" encoding="UTF-8" indent="yes">
+    <!-- NB:  If we add  xmlns="http://www.w3.org/1999/xhtml"  to <html> here, -->
+    <!-- then we get plenty of top-level-ish  xmlns="" which do not validate   -->
+    <!-- Any XML declaration seems to get scrubbed by the MathJax processing   -->
+    <!-- (converted to a comment), so we explicitly suppress it here, and in   -->
+    <!-- other exsl:document uses.                                             -->
+    <exsl:document href="{$file}" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes">
         <html>
             <head>
                 <xsl:text>&#xa;</xsl:text> <!-- a little formatting help -->
                 <xsl:call-template name="converter-blurb-html" />
+                <link href="../{$css-dir}/pretext-epub.css" rel="stylesheet" type="text/css" />
             </head>
             <body>
                 <!-- Keep div wrapper on macros or else indentation  -->
@@ -153,11 +165,40 @@
     </exsl:document>
 </xsl:template>
 
+<!-- At level 1, we can just kill book's summary page -->
+
 <!-- The book element gets mined in various ways,            -->
 <!-- but the "usual" HTML treatment can/should be thrown out -->
 <!-- At fixed level 1, this is a summary page                -->
 <!-- Later gives precedence?  So overrides above             -->
 <xsl:template match="book" mode="file-wrap" />
+
+<!-- At level 2 we need to capture chapter and appendix -->
+<!-- introductions from summary page that is at level 1 -->
+<!-- NB: we are missing conclusions here                -->
+<!-- NB: copied from mathbook-html.xsl, sans            -->
+<!-- the summary links and the conclusion               -->
+<xsl:template match="frontmatter|chapter|appendix" mode="summary">
+    <!-- location info for debugging efforts -->
+    <xsl:apply-templates select="." mode="debug-location" />
+    <!-- Heading, div for this structural subdivision -->
+    <xsl:variable name="hid">
+        <xsl:apply-templates select="." mode="html-id" />
+    </xsl:variable>
+    <section class="{local-name(.)}" id="{$hid}">
+        <xsl:apply-templates select="." mode="section-header" />
+        <xsl:apply-templates select="author|objectives|introduction|titlepage|abstract" />
+        <!-- deleted "nav" and summary links here -->
+        <!-- "conclusion" is being missed here    -->
+     </section>
+</xsl:template>
+
+<!-- At level 2, the backmatter summary is useless, -->
+<!-- since it is all links, so just kill the file,  -->
+<!-- and do not include in the manifest or spine    -->
+<xsl:template match="backmatter" mode="file-wrap" />
+
+
 
 <!-- ##################### -->
 <!-- Setup, Infrastructure -->
@@ -174,7 +215,7 @@
     <!-- Do not use "doctype-system" here                            -->
     <!-- Automatically writes XML header at version 1.0, no encoding -->
     <!-- Points to OPF metadata file (in two variables)              -->
-    <exsl:document href="META-INF/container.xml" method="xml" indent="yes">
+    <exsl:document href="META-INF/container.xml" method="xml" omit-xml-declaration="yes" indent="yes">
         <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
           <rootfiles>
             <rootfile full-path="{$content-dir}/{$package-file}" media-type="application/oebps-package+xml" />
@@ -192,7 +233,7 @@
     <!-- Must be XML, UTF-8/16            -->
     <!-- Required on package: version, id -->
     <!-- Trying with no encoding, Gitden rejects? -->
-    <exsl:document href="{$content-dir}/{$package-file}" method="xml" indent="yes">
+    <exsl:document href="{$content-dir}/{$package-file}" method="xml" omit-xml-declaration="yes" indent="yes">
         <package xmlns="http://www.idpf.org/2007/opf"
                  unique-identifier="{$uid-string}" version="3.0">
             <xsl:call-template name="package-metadata" />
@@ -210,15 +251,15 @@
 <xsl:template name="package-metadata">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.idpf.org/2007/opf">
         <!-- Optional in EPUB 3.0.1 spec -->
-        <!-- Don't write this if both of these are empty -->
-        <xsl:element name="dc:creator">
-            <xsl:apply-templates select="//frontmatter/titlepage/author" mode="name-list"/>
-            <xsl:apply-templates select="//frontmatter/titlepage/editor" mode="name-list"/>
-        </xsl:element>
+        <xsl:for-each select="$document-root//frontmatter/titlepage/author|$document-root//frontmatter/titlepage/editor">
+            <xsl:element name="dc:creator">
+                <xsl:apply-templates select="personname"/>
+            </xsl:element>
+        </xsl:for-each>
         <!-- Required in EPUB 3.0.1 spec       -->
         <!-- TODO: title-types can refine this -->
         <xsl:element name="dc:title">
-            <xsl:apply-templates select="/mathbook/book" mode="title-full" />
+            <xsl:apply-templates select="$document-root" mode="title-full" />
         </xsl:element>
         <!-- Required in EPUB 3.0.1 spec                -->
         <!-- Repeatable and more complicated, see spec  -->
@@ -258,13 +299,13 @@
 <!-- Exactly one item has the "nav" property                   -->
 <xsl:template name="package-manifest">
     <manifest xmlns="http://www.idpf.org/2007/opf">
-        <!-- <item id="css" href="{$css-dir}/mathbook-content.css" media-type="text/css"/> -->
-        <item id="cover" href="{$xhtml-dir}/cover.xhtml" media-type="application/xhtml+xml"/>
+        <item id="css" href="{$css-dir}/pretext-epub.css" media-type="text/css"/>
+        <item id="cover-page" href="{$xhtml-dir}/cover-page.xhtml" media-type="application/xhtml+xml"/>
         <item id="title-page" href="{$xhtml-dir}/title-page.xhtml" media-type="application/xhtml+xml"/>
         <item id="table-contents" href="{$xhtml-dir}/table-contents.xhtml" properties="nav" media-type="application/xhtml+xml"/>
         <item id="cover-image" href="{$xhtml-dir}/images/cover.png" properties="cover-image" media-type="image/png"/>
         <!-- <item id="cover-image" href="{$xhtml-dir}/images/cover.jpg" properties="cover-image" media-type="image/jpeg"/> -->
-        <xsl:apply-templates select="/mathbook/book" mode="manifest" />
+        <xsl:apply-templates select="$document-root" mode="manifest" />
     </manifest>
 </xsl:template>
 
@@ -276,10 +317,11 @@
 
 <!-- Build an empty item element for each CHAPTER, -->
 <!-- FRONTMATTER, BACKMATTER, -->
+<!-- Don't include "backmatter", all summary       -->
 <!-- recurse into contents for image files, etc    -->
 <!-- See "Core Media Type Resources"               -->
-<!-- Add to spine as appropriate                   -->
-<xsl:template match="frontmatter|chapter|backmatter" mode="manifest">
+<!-- Add to spine identically                      -->
+<xsl:template match="frontmatter|colophon|acknowledgement|preface|chapter|appendix|index|section|exercises|references|solutions" mode="manifest">
     <!-- Annotate manifest entries -->
     <xsl:comment>
         <xsl:apply-templates select="." mode="long-name" />
@@ -287,7 +329,7 @@
     <!-- one  item  element per chapter -->
     <xsl:element name="item" xmlns="http://www.idpf.org/2007/opf">
         <xsl:attribute name="id">
-            <xsl:apply-templates select="." mode="internal-id" />
+            <xsl:apply-templates select="." mode="html-id" />
         </xsl:attribute>
         <!-- properties are iff, so validator complains if extra -->
         <!-- condition on math presence for svg/mathml property  -->
@@ -309,6 +351,7 @@
             <xsl:text>application/xhtml+xml</xsl:text>
         </xsl:attribute>
     </xsl:element>
+    <!-- recurse, eg from chapter down into a section -->
     <xsl:apply-templates select="*" mode="manifest" />
 </xsl:template>
 
@@ -317,10 +360,10 @@
 <!-- Each must reference an id in the manifest   -->
 <xsl:template name="package-spine">
     <spine xmlns="http://www.idpf.org/2007/opf">
-        <itemref idref="cover" linear="yes" />
+        <itemref idref="cover-page" linear="yes" />
         <itemref idref="title-page" linear="yes"/>
         <itemref idref="table-contents" linear="yes"/>
-        <xsl:apply-templates select="/mathbook/book" mode="spine" />
+        <xsl:apply-templates select="$document-root" mode="spine" />
     </spine>
 </xsl:template>
 
@@ -329,10 +372,11 @@
     <xsl:apply-templates select="*" mode="spine" />
 </xsl:template>
 
-<xsl:template match="frontmatter|chapter|backmatter" mode="spine">
+<!-- Simplest scenario is spine matches manifest, all with @linear="yes" -->
+<xsl:template match="frontmatter|colophon|acknowledgement|preface|chapter|appendix|index|section|exercises|references|solutions" mode="spine">
     <xsl:element name="itemref" xmlns="http://www.idpf.org/2007/opf">
         <xsl:attribute name="idref">
-            <xsl:apply-templates select="." mode="internal-id" />
+            <xsl:apply-templates select="." mode="html-id" />
         </xsl:attribute>
         <xsl:attribute name="linear">
             <xsl:text>yes</xsl:text>
@@ -347,23 +391,39 @@
 <!-- ############# -->
 
 <xsl:template match="frontmatter" mode="epub">
-    <exsl:document href="{$content-dir}/{$xhtml-dir}/cover.xhtml" method="xml" encoding="UTF-8" indent="yes">
+    <exsl:document href="{$content-dir}/{$xhtml-dir}/cover-page.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes">
         <html xmlns="http://www.w3.org/1999/xhtml">
-            <head></head>
+            <!-- head element should not be empty -->
+            <head>
+                <meta charset="utf-8"/>
+                <title>
+                    <xsl:apply-templates select="$document-root" mode="title-full"/>
+                </title>
+            </head>
             <body>
-                <img src="images/cover.png" />
+                <!-- https://www.opticalauthoring.com/inside-the-epub-format-the-cover-image/   -->
+                <!-- says the "figure" is necessary, and does not seem to hurt (CSS could style)-->
+                <figure>
+                    <img src="images/cover.png" />
+                </figure>
             </body>
         </html>
     </exsl:document>
-    <exsl:document href="{$content-dir}/{$xhtml-dir}/title-page.xhtml" method="xml" encoding="UTF-8" indent="yes">
+    <exsl:document href="{$content-dir}/{$xhtml-dir}/title-page.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes">
         <html xmlns="http://www.w3.org/1999/xhtml">
-            <head></head>
+            <!-- head element should not be empty -->
+            <head>
+                <meta charset="utf-8"/>
+                <title>
+                    <xsl:apply-templates select="$document-root" mode="title-full"/>
+                </title>
+            </head>
             <body>
                 <h1>
-                    <xsl:apply-templates select="/mathbook/book" mode="title-full" />
-                    <xsl:if test="/mathbook/book/subtitle">
+                    <xsl:apply-templates select="$document-root" mode="title-full" />
+                    <xsl:if test="$document-root/subtitle">
                         <br />
-                        <xsl:apply-templates select="/mathbook/book" mode="subtitle" />
+                        <xsl:apply-templates select="$document-root" mode="subtitle" />
                     </xsl:if>
                 </h1>
                 <h3>
@@ -374,7 +434,7 @@
             </body>
         </html>
     </exsl:document>
-    <exsl:document href="{$content-dir}/{$xhtml-dir}/table-contents.xhtml" method="xml" encoding="UTF-8" indent="yes">
+    <exsl:document href="{$content-dir}/{$xhtml-dir}/table-contents.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes">
         <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
             <head>
                 <meta charset="utf-8"/>
@@ -383,7 +443,7 @@
                 <nav epub:type="toc" id="toc">
                     <h1>Table of Contents</h1>
                     <ol>
-                        <xsl:for-each select="/mathbook/book/chapter">
+                        <xsl:for-each select="$document-root/chapter|$document-root/backmatter/appendix|$document-root/backmatter/index">
                             <li>
                                 <xsl:element name="a">
                                     <xsl:attribute name="href">
@@ -402,7 +462,7 @@
 
 <!-- An abstract named template accepts input text and   -->
 <!-- output text, then wraps it for the Sage Cell Server -->
-<xsl:template name="sage-active-markup">
+<xsl:template match="sage" mode="sage-active-markup">
     <xsl:param name="in" />
     <xsl:param name="out" />
     <xsl:if test="$in!=''">
@@ -439,9 +499,54 @@
 <!-- Need to add to manifest accurately,              -->
 <!-- and also include into source                     -->
 
-<!-- Manifest entry first -->
-<xsl:template match="image[@source]" mode="manifest">
-    <!-- condition on file extension -->
+<!-- Base filename for an image,  -->
+<!-- mostly handling the @source case -->
+<xsl:template match="image" mode="epub-base-filename">
+    <xsl:choose>
+        <xsl:when test="@source">
+            <xsl:variable name="extension">
+                <xsl:call-template name="file-extension">
+                    <xsl:with-param name="filename" select="@source" />
+                </xsl:call-template>
+            </xsl:variable>
+            <!-- PDF LaTeX, SVG HTML, if not indicated -->
+            <xsl:apply-templates select="@source" />
+            <xsl:if test="$extension=''">
+                <xsl:text>.svg</xsl:text>
+            </xsl:if>
+        </xsl:when>
+        <xsl:when test="latex-image|latex-image-code|sageplot|asymptote">
+            <xsl:value-of select="$directory.images" />
+            <xsl:text>/</xsl:text>
+            <xsl:apply-templates select="." mode="visible-id" />
+            <xsl:text>.svg</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:message>MBX:BUG:     image filename not determined in EPUB conversion</xsl:message>
+            <xsl:apply-templates select="." mode="location-report" />
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- Output a list of filenames, for a production script  -->
+<!-- to use to ensure that the image files made available -->
+<!-- in the final zip file actually match the files       -->
+<!-- described in the manifest section                    -->
+<xsl:template name="build-image-list">
+    <xsl:variable name="image-list-filename">
+        <xsl:value-of select="$xhtml-dir" />
+        <xsl:text>/image-list.txt</xsl:text>
+    </xsl:variable>
+    <exsl:document href="{$image-list-filename}" method="text" encoding="UTF-8">
+        <xsl:for-each select="$document-root//image">
+            <xsl:apply-templates select="." mode="epub-base-filename" />
+            <xsl:text>&#xa;</xsl:text>
+        </xsl:for-each>
+    </exsl:document>
+</xsl:template>
+
+<!-- Manifest entry with image file information -->
+<xsl:template match="image" mode="manifest">
     <xsl:variable name="extension">
         <xsl:call-template name="file-extension">
             <xsl:with-param name="filename" select="@source" />
@@ -451,28 +556,32 @@
     <xsl:element name="item" xmlns="http://www.idpf.org/2007/opf">
         <!-- internal id of the image -->
         <xsl:attribute name="id">
-            <xsl:apply-templates select="." mode="internal-id" />
+            <xsl:apply-templates select="." mode="html-id" />
         </xsl:attribute>
         <!-- filename, or tack on .svg for vector graphics -->
         <xsl:attribute name="href">
             <xsl:value-of select="$xhtml-dir" />
             <xsl:text>/</xsl:text>
-            <xsl:apply-templates select="@source" />
-            <xsl:if test="$extension=''">
-                <xsl:text>.svg</xsl:text>
-            </xsl:if>
+            <xsl:apply-templates select="." mode="epub-base-filename" />
         </xsl:attribute>
         <xsl:attribute name="media-type">
             <xsl:choose>
-                <xsl:when test="$extension='png'">
+                <xsl:when test="@source and $extension='png'">
                     <xsl:text>image/png</xsl:text>
                 </xsl:when>
-                <xsl:when test="$extension='jpeg' or $extension='jpg'">
+                <xsl:when test="@source and ($extension='jpeg' or $extension='jpg')">
                     <xsl:text>image/jpeg</xsl:text>
                 </xsl:when>
-                <xsl:when test="$extension='svg' or $extension=''">
+                <xsl:when test="@source and ($extension='svg' or $extension='')">
                     <xsl:text>image/svg+xml</xsl:text>
                 </xsl:when>
+                <xsl:when test="latex-image|latex-image-code|sageplot|asymptote">
+                    <xsl:text>image/svg+xml</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message>MBX:BUG:     EPUB image media-type not determined</xsl:message>
+                    <xsl:apply-templates select="." mode="location-report" />
+                </xsl:otherwise>
             </xsl:choose>
         </xsl:attribute>
     </xsl:element>
@@ -480,79 +589,17 @@
     <xsl:apply-templates select="*" mode="manifest" />
 </xsl:template>
 
-<!-- Manifest entry first -->
-<xsl:template match="image/latex-image-code|image/sageplot|image/asymptote" mode="manifest">
-    <!-- condition on file extension -->
-    <xsl:variable name="extension">
-        <xsl:call-template name="file-extension">
-            <xsl:with-param name="filename" select="@source" />
-        </xsl:call-template>
-    </xsl:variable>
-    <!-- item  element for manifest -->
-    <xsl:element name="item" xmlns="http://www.idpf.org/2007/opf">
-        <!-- internal id of the image -->
-        <xsl:attribute name="id">
-            <xsl:apply-templates select="." mode="internal-id" />
-        </xsl:attribute>
-        <!-- filename, or tack on .svg for vector graphics -->
-        <xsl:attribute name="href">
-            <xsl:value-of select="$xhtml-dir" />
-            <xsl:text>/</xsl:text>
-            <xsl:value-of select="$directory.images" />
-            <xsl:text>/</xsl:text>
-            <xsl:apply-templates select=".." mode="internal-id" />
-            <xsl:text>.svg</xsl:text>
-        </xsl:attribute>
-        <xsl:attribute name="media-type">
-            <xsl:text>image/svg+xml</xsl:text>
-         </xsl:attribute>
-    </xsl:element>
-    <!-- dead-end on  mode="manifest"  descent, most likely -->
-    <xsl:apply-templates select="*" mode="manifest" />
-</xsl:template>
-
-<!-- Now the image inclusion   -->
-<!-- With source specification -->
-<xsl:template match="image[@source]">
-    <!-- condition on file extension -->
-    <xsl:variable name="extension">
-        <xsl:call-template name="file-extension">
-            <xsl:with-param name="filename" select="@source" />
-        </xsl:call-template>
-    </xsl:variable>
+<!-- Now the actual image inclusion where born -->
+<xsl:template match="image">
     <xsl:element name="img">
         <xsl:attribute name="src">
-            <xsl:value-of select="@source" />
-            <xsl:if test="$extension=''">
-                <xsl:text>.svg</xsl:text>
-            </xsl:if>
+            <xsl:apply-templates select="." mode="epub-base-filename" />
         </xsl:attribute>
         <xsl:if test="@width">
             <xsl:attribute name="style">
-                <xsl:text>width:</xsl:text>
+                <xsl:text>width: </xsl:text>
                 <xsl:value-of select="@width" />
-                <xsl:text>;</xsl:text>
-            </xsl:attribute>
-        </xsl:if>
-    </xsl:element>
-</xsl:template>
-
-<!-- Now the image inclusion   -->
-<!-- With source specification -->
-<xsl:template match="image/latex-image-code|image/sageplot|image/asymptote">
-    <!-- assumes SVG exists from  mbx  script creation -->
-    <xsl:element name="img">
-        <xsl:attribute name="src">
-            <xsl:value-of select="$directory.images" />
-            <xsl:text>/</xsl:text>
-            <xsl:apply-templates select=".." mode="internal-id" />
-            <xsl:text>.svg</xsl:text>
-        </xsl:attribute>
-        <xsl:if test="../@width">
-            <xsl:attribute name="style">
-                <xsl:text>width:</xsl:text>
-                <xsl:value-of select="../@width" />
-                <xsl:text>;</xsl:text>
+                <xsl:text>; margin: 0 auto;</xsl:text>
             </xsl:attribute>
         </xsl:if>
     </xsl:element>
@@ -562,69 +609,49 @@
 <!-- OverRides -->
 <!-- ######### -->
 
-<!-- Section Headers -->
-<!-- Primitive for openers, and universal   -->
-<!-- Incorporates "header-content" template -->
-<!-- TODO: Hide type-name sometimes, vary h1, h2,... -->
-<xsl:template match="*" mode="section-header">
-    <header>
-        <xsl:element name="h1">
-            <!-- <xsl:apply-templates select="." mode="header-content" /> -->
-            <xsl:apply-templates select="." mode="type-name" />
-            <xsl:text> </xsl:text>
-            <xsl:apply-templates select="." mode="number" />
-            <xsl:text> </xsl:text>
-            <xsl:apply-templates select="." mode="title-full" />
-        </xsl:element>
-        <xsl:if test="author">
-            <p><xsl:apply-templates select="author" mode="name-list"/></p>
-        </xsl:if>
-    </header>
-</xsl:template>
-
 <!-- Knowls -->
 <!-- No cross-reference should be a knowl -->
 <xsl:template match="*" mode="xref-as-knowl">
     <xsl:value-of select="false()" />
 </xsl:template>
 
-<!-- Cross-Reference Links -->
-<!-- Stripped down only to remove "alt" tags               -->
-<!-- Knowl links removed as template above is always false -->
-<!-- The second abstract template, we condition   -->
-<!-- on if the link is rendered as a knowl or not -->
-<xsl:template match="*" mode="xref-link">
-    <xsl:param name="content" />
-    <xsl:element name="a">
-        <!-- build traditional hyperlink -->
-        <xsl:attribute name="href">
-            <xsl:apply-templates select="." mode="url" />
-        </xsl:attribute>
-        <!-- link content from common template -->
-        <!-- For a contributor we bypass autonaming, etc -->
-        <xsl:choose>
-            <xsl:when test="self::contributor">
-                <xsl:apply-templates select="personname" />
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="$content" />
-            </xsl:otherwise>
-        </xsl:choose>
+<!-- Footnotes -->
+<!-- Use "EPUB 3 Structural Semantics Vocabulary" -->
+<!-- to get desired behavior from e-reader system -->
+<!-- http://www.pigsgourdsandwikis.com/2012/05/creating-pop-up-footnotes-in-epub-3-and.html -->
+<xsl:template match="fn">
+    <xsl:variable name="hid">
+        <xsl:apply-templates select="." mode="html-id" />
+    </xsl:variable>
+    <!-- drop cross-reference, super-scripted, spaced -->
+    <xsl:element name="sup">
+        <a epub:type="noteref" href="#{$hid}">
+            <xsl:apply-templates select="." mode="serial-number" />
+        </a>
     </xsl:element>
+    <!-- content to an "aside", should automatically be hidden -->
+    <aside epub:type="footnote" id="{$hid}">
+        <!-- process as mixed-content, don't yet allow paragraphs -->
+        <xsl:apply-templates select="*|text()" />
+    </aside>
 </xsl:template>
 
-<!-- Index -->
-<!-- Has knowls by default, so we kill it -->
-<xsl:template match="index-list">
-    <p>Index intentionally blank, knowls inactive in EPUB</p>
-</xsl:template>
+<!-- ##### -->
+<!-- Icons -->
+<!-- ##### -->
 
-<!-- Code, inline -->
-<!-- Validator does not like <tt> element -->
-<xsl:template match="c">
-    <xsl:element name="code">
-        <xsl:apply-templates select="text()" />
-    </xsl:element>
+<!-- Unicode characters will relieve necessity of        -->
+<!-- Font Awesome CSS loading, $icon-table is in -common -->
+<xsl:template match="icon">
+    <!-- the name attribute of the "icon" in text as a string -->
+    <xsl:variable name="icon-name">
+        <xsl:value-of select="@name"/>
+    </xsl:variable>
+
+    <!-- for-each is just one node, but sets context for key() -->
+    <xsl:for-each select="$icon-table">
+        <xsl:value-of select="key('icon-key', $icon-name)/@unicode" />
+    </xsl:for-each>
 </xsl:template>
 
 </xsl:stylesheet>

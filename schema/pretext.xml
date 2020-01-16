@@ -936,8 +936,11 @@
                 attribute cols {"2"|"3"|"4"|"5"|"6"}?,
                 attribute label {text}?,
                 element li {
-                    MetaDataTarget,
-                    (TextParagraph | BlockStatement+)
+                    (
+                        (MetaDataTarget, TextParagraph)
+                    |
+                        (MetaDataTitleOptional, BlockStatement+)
+                    )
                 }+
             }
         |
@@ -946,8 +949,11 @@
                 attribute cols {"2"|"3"|"4"|"5"|"6"}?,
                 attribute label {"disc" | "circle" | "square" | ""}?,
                 element li {
-                    PermanentID?,
-                    (TextParagraph | BlockStatement+)
+                    (
+                        (MetaDataTarget, TextParagraph)
+                    |
+                        (MetaDataTitleOptional, BlockStatement+)
+                    )
                 }+
             }
         |
@@ -1082,12 +1088,12 @@
     <section>
         <title>Remarks and Other Comments</title>
 
-        <p>Really simple blocks, they do not have much structure, and so are just runs of paragraphs.</p>
+        <p>Really simple blocks, they do not have much structure, and so are just runs of paragraphs, though <tag>figure</tag>, <tag>table</tag>, <tag>listing</tag>, and <tag>list</tag> may be included.</p>
 
         <fragment xml:id="remark-like">
         RemarkLike =
             MetaDataTitleOptional,
-            BlockText+
+            BlockStatement+
         Remark =
             element remark {RemarkLike}
         |
@@ -1172,7 +1178,7 @@
             }
         |
             element table {
-                MetaDataCaption,
+                MetaDataShortTitle,
                 Tabular
             }
         |
@@ -1185,7 +1191,7 @@
             }
         |
             element list {
-                MetaDataCaption,
+                MetaDataShortTitle,
                 IntroductionText?,
                 List,
                 ConclusionText?
@@ -1574,7 +1580,6 @@
             }
         WebWorkAuthored =
             element webwork {
-                MetaDataTitleOptional,
                 attribute seed {xsd:integer}?,
                 WWMacros?,
                 WWSetup?,

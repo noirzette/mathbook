@@ -478,8 +478,11 @@
                 attribute cols {"2"|"3"|"4"|"5"|"6"}?,
                 attribute label {text}?,
                 element li {
-                    MetaDataTarget,
-                    (TextParagraph | BlockStatement+)
+                    (
+                        (MetaDataTarget, TextParagraph)
+                    |
+                        (MetaDataTitleOptional, BlockStatement+)
+                    )
                 }+
             }
         |
@@ -488,8 +491,11 @@
                 attribute cols {"2"|"3"|"4"|"5"|"6"}?,
                 attribute label {"disc" | "circle" | "square" | ""}?,
                 element li {
-                    PermanentID?,
-                    (TextParagraph | BlockStatement+)
+                    (
+                        (MetaDataTarget, TextParagraph)
+                    |
+                        (MetaDataTitleOptional, BlockStatement+)
+                    )
                 }+
             }
         |
@@ -605,7 +611,7 @@
         
         RemarkLike =
             MetaDataTitleOptional,
-            BlockText+
+            BlockStatement+
         Remark =
             element remark {RemarkLike}
         |
@@ -662,7 +668,7 @@
             }
         |
             element table {
-                MetaDataCaption,
+                MetaDataShortTitle,
                 Tabular
             }
         |
@@ -675,7 +681,7 @@
             }
         |
             element list {
-                MetaDataCaption,
+                MetaDataShortTitle,
                 IntroductionText?,
                 List,
                 ConclusionText?
@@ -971,7 +977,6 @@
             }
         WebWorkAuthored =
             element webwork {
-                MetaDataTitleOptional,
                 attribute seed {xsd:integer}?,
                 WWMacros?,
                 WWSetup?,

@@ -1,7 +1,14 @@
 // Original gist from Peter Krautzberger
 // https://gist.github.com/pkra/7ccdd351838f0bbdfe0080a4eacda7ca
-// 2019-02-14
-//
+// Rob Beezer: 2019-02-14
+
+// Alexei S. Kolesnikov: 2019-06-27
+// Modified render(node) method to produce cleaner output
+// and remove extraneous spaces.
+
+// Rob Beezer: 2019-07-24
+// Minor updates to accomodate SRE 3.0.0-beta.5
+
 const fs = require('fs');
 const mjnode = require('mathjax-node-sre');
 const jsdom = require('jsdom');
@@ -10,7 +17,7 @@ process.on('unhandledRejection', r => console.log(r));
 
 mjnode.config({
   MathJax: {
-    // your config
+    // default config is okay
   }
 });
 const mj = mjnode.typeset;
@@ -18,30 +25,16 @@ const mj = mjnode.typeset;
 const render = async (node) => {
   let mathinput = node.outerHTML;
   const result = await mj({
-    // stock  mathjax-node  options
-    //
-    // next one is necessary, not clear why
-    math: mathinput,
-    // how math lives on input page
-    format: 'MathML',
-    // output as an SVG representation
-    // braille in  math/svg/title  element near start
-    svg: true,
-    // semantic enrichmant will be ignored anyway
-    enrich: false,
-    //
-    // sre  options
-    // if not true, no speech output
-    speakText: true,
-    // options for Speech Rule Engine
-    // as a list, but with implicit pairs
-    // becomes a key-value object
-    // domain = default, locale = nemeth
-    sre: ['domain', 'default', 'locale', 'nemeth'],
-  });
-  // result.* member must match output type
-  // or we get "undefined" in output file
-  node.innerHTML = result.svg
+    math: mathinput, // This is the MathML expression that will be converted
+    format: "MathML",
+    mml:true, // I think it does not matter which we pick, mml or svg; we are not using it anyway
+    sre: ['domain', 'default', 'locale', 'nemeth', 'modality', 'braille'], // This is important!
+    });
+
+  // result.speech contains Nemeth Braille code for mathinput
+  // This needs to be enclosed in some tags. I picked 'title';
+  // we may want to come up with something like <nemeth>.
+  node.innerHTML = '<nemeth>'+result.speech+'</nemeth>';
 };
 
 const main = async argv => {

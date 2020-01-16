@@ -984,14 +984,19 @@
           <xs:sequence>
             <xs:element maxOccurs="unbounded" name="li">
               <xs:complexType mixed="true">
-                <xs:sequence>
-                  <xs:group ref="MetaDataTarget"/>
-                  <xs:choice>
+                <xs:choice>
+                  <xs:sequence>
+                    <xs:group ref="MetaDataTarget"/>
                     <xs:group ref="TextParagraph"/>
+                  </xs:sequence>
+                  <xs:sequence>
+                    <xs:group ref="MetaDataTitleOptional"/>
                     <xs:group maxOccurs="unbounded" ref="BlockStatement"/>
-                  </xs:choice>
-                </xs:sequence>
+                  </xs:sequence>
+                </xs:choice>
                 <xs:attributeGroup ref="MetaDataTarget"/>
+                <xs:attribute ref="xml:base"/>
+                <xs:attribute ref="xml:lang"/>
               </xs:complexType>
             </xs:element>
           </xs:sequence>
@@ -1020,10 +1025,18 @@
         <xs:element maxOccurs="unbounded" name="li">
           <xs:complexType mixed="true">
             <xs:choice>
-              <xs:group ref="TextParagraph"/>
-              <xs:group maxOccurs="unbounded" ref="BlockStatement"/>
+              <xs:sequence>
+                <xs:group ref="MetaDataTarget"/>
+                <xs:group ref="TextParagraph"/>
+              </xs:sequence>
+              <xs:sequence>
+                <xs:group ref="MetaDataTitleOptional"/>
+                <xs:group maxOccurs="unbounded" ref="BlockStatement"/>
+              </xs:sequence>
             </xs:choice>
-            <xs:attribute name="permid"/>
+            <xs:attributeGroup ref="MetaDataTarget"/>
+            <xs:attribute ref="xml:base"/>
+            <xs:attribute ref="xml:lang"/>
           </xs:complexType>
         </xs:element>
       </xs:sequence>
@@ -1251,7 +1264,7 @@
   <xs:complexType name="RemarkLike">
     <xs:sequence>
       <xs:group ref="MetaDataTitleOptional"/>
-      <xs:group maxOccurs="unbounded" ref="BlockText"/>
+      <xs:group maxOccurs="unbounded" ref="BlockStatement"/>
     </xs:sequence>
     <xs:attributeGroup ref="MetaDataTitleOptional"/>
   </xs:complexType>
@@ -1346,7 +1359,7 @@
   <xs:element name="table">
     <xs:complexType>
       <xs:complexContent>
-        <xs:extension base="MetaDataCaption">
+        <xs:extension base="MetaDataShortTitle">
           <xs:sequence>
             <xs:element ref="tabular"/>
           </xs:sequence>
@@ -1369,7 +1382,7 @@
   <xs:element name="list">
     <xs:complexType>
       <xs:complexContent>
-        <xs:extension base="MetaDataCaption">
+        <xs:extension base="MetaDataShortTitle">
           <xs:sequence>
             <xs:group minOccurs="0" ref="IntroductionText"/>
             <xs:group ref="List"/>
@@ -2000,7 +2013,6 @@
       <xs:element name="webwork">
         <xs:complexType>
           <xs:sequence>
-            <xs:group ref="MetaDataTitleOptional"/>
             <xs:element minOccurs="0" ref="pg-macros"/>
             <xs:element minOccurs="0" ref="setup"/>
             <xs:choice>
@@ -2012,7 +2024,6 @@
               <xs:element maxOccurs="unbounded" ref="stage"/>
             </xs:choice>
           </xs:sequence>
-          <xs:attributeGroup ref="MetaDataTitleOptional"/>
           <xs:attribute name="seed" type="xs:integer"/>
         </xs:complexType>
       </xs:element>

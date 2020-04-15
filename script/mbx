@@ -94,14 +94,52 @@ def asymptote_conversion(xml_source, xmlid_root, dest_dir, outformat):
         os.path.join(mbx_xsl_dir, 'extract-asymptote.xsl'),
         xml_source
         ]
+    # stylesheet uses variable-subtree infrastructure, so we get list
+    # items, but not the list structure itself.  Easily remedied
     _verbose("extracting Asymptote diagrams from {}".format(xml_source))
-    subprocess.call(extract_cmd)
+    diagram_list = '[' + subprocess.check_output(extract_cmd).decode('ascii') + ']'
+    diagrams = eval(diagram_list)
     cwd = os.getcwd()
     os.chdir(tmp_dir)
     devnull = open(os.devnull, 'w')
-    for asydiagram in os.listdir(tmp_dir):
+    # perhaps replace following stock advisory with a real version
+    # check using the (undocumented) distutils.version module, see:
+    # https://stackoverflow.com/questions/11887762/how-do-i-compare-version-numbers-in-python
+    if outformat == 'html':
+        # https://stackoverflow.com/questions/4514751/pipe-subprocess-standard-output-to-a-variable
+        proc = subprocess.Popen([asy_executable, '--version'], stderr=subprocess.PIPE)
+        asyversion = proc.stderr.read()
+        _verbose("#####################################################")
+        _verbose("Asymptote 3D HTML output is experimental (2020-01-24)")
+        _verbose("it is only supported by Asymptote 2.62 and")
+        _verbose("newer, your Asymptote executable in use reports:")
+        _verbose(asyversion)
+        _verbose("#####################################################")
+    # every diagram should be a *.asy file in tmp_dir, which is cwd
+    # we loop over the list, rather than the directory,
+    # so as to have extra info, such as the target dimension
+    for diagram in diagrams:
+        asydiagram = diagram[0]
+        # can condition processing on diagram[1]
+        # which is a string: '2D' or '3D'
         if outformat == 'source':
             shutil.copy2(asydiagram, dest_dir)
+        elif outformat == 'html':
+            filebase, _ = os.path.splitext(asydiagram)
+            asyout = "{}.{}".format(filebase, outformat)
+            asysvg = "{}.svg".format(filebase)
+            asypng = "{}_*.png".format(filebase)
+            asy_cmd = [asy_executable, '-outformat', outformat, asydiagram]
+            _verbose("converting {} to {}".format(asydiagram, asyout))
+            _debug("asymptote conversion {}".format(asy_cmd))
+            subprocess.call(asy_cmd, stdout=devnull, stderr=subprocess.STDOUT)
+            if os.path.exists(asyout) == True:
+                shutil.copy2(asyout, dest_dir)
+            else:
+                shutil.copy2(asysvg, dest_dir)
+                # Sometimes Asymptotes SVGs include multiple PNGs for colored regions
+                for f in glob.glob(asypng):
+                    shutil.copy2(f, dest_dir)
         else:
             filebase, _ = os.path.splitext(asydiagram)
             asyout = "{}.{}".format(filebase, outformat)
@@ -1454,7 +1492,9 @@ if args.component == 'tikz':
     else:
         raise NotImplementedError('cannot make TikZ pictures in "{}" format'.format(args.format))
 elif args.component == 'asy':
-    if args.format == 'pdf':
+    if args.format == 'html':
+        asymptote_conversion(args.xml_file, args.xmlid, output_dir, 'html')
+    elif args.format == 'pdf':
         asymptote_conversion(args.xml_file, args.xmlid, output_dir, 'pdf')
     elif args.format == 'svg':
         asymptote_conversion(args.xml_file, args.xmlid, output_dir, 'svg')

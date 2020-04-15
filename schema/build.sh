@@ -46,7 +46,7 @@ declare FDH=/opt/flexdoc/flexdoc-xml-1.12.3
 declare FDOUTDIR=${HOME}/mathbook/website/pretextbook.org/doc/schema
 # Java root to locate executables
 # (if not set by system: uncomment and set)
-# declare JAVA_HOME=
+declare JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/
 
 # *************
 # Derived paths
@@ -57,7 +57,7 @@ declare MBXSL=${MB}/xsl
 # Java particulars for documentation generation
 # Quotes to protect spaces (use on filenames?)
 declare JAVA_OPTIONS="-Xms512m -Xmx1024m"
-declare CLASS_PATH="${FDH}/lib/xml-apis.jar:${FDH}/lib/xercesImpl.jar:${FDH}/lib/resolver.jar:${FDH}/lib/flexdoc-xml.jar"
+declare CLASS_PATH="${FDH}/lib/xml-apis.jar:${FDH}/lib/xercesImpl.jar:${FDH}/lib/resolver.jar:${FDH}/lib/flexdoc-xml.jar:/usr/share/openjfx/lib/*"
 
 # ******************
 # Grammar generation

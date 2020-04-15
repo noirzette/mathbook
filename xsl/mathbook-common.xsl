@@ -1052,7 +1052,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- We check certain aspects of the source and record the results  -->
 <!-- in boolean ($b-has-*) variables or as particular nodes high    -->
 <!-- up in the structure ($document-root).  Scans here in -common   -->
-<!-- should be short and definite (no searching paths with "//"!),  -->
+<!-- should be short and definite (no searching paths with //!),    -->
 <!-- and universally useful, largely conveniences for consistency.  -->
 <!-- Remember that many basic templates are shared out of this      -->
 <!-- file for often very simple conversions (e.g. extractions)      -->
@@ -4547,7 +4547,7 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <!-- ############# -->
 
 <!-- Comments are Unicode names, from fileformat.info            -->
-<!-- @latex values are macros in teh menukeys package specifying -->
+<!-- @latex values are macros in the menukeys package specifying -->
 <!-- keyboard keys that are typically labeled with graphics      -->
 <xsl:variable name="kbdkey-rtf">
     <kbdkeyinfo name="left"
@@ -4568,6 +4568,43 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
     <kbdkeyinfo name="shift"
                 latex="\shift"
                 unicode="&#x21E7;"/> <!-- UPWARDS WHITE ARROW -->
+    <kbdkeyinfo name="ampersand"
+                latex="\&amp;"
+                unicode="&#x0026;"/> <!-- AMPERSAND -->
+    <kbdkeyinfo name="less"
+                latex='\textless'
+                unicode="&#x003C;"/> <!-- LESS-THAN SIGN-->
+    <kbdkeyinfo name="greater"
+                latex='\textgreater'
+                unicode="&#x003E;"/> <!-- GREATER-THAN SIGN-->
+    <kbdkeyinfo name="dollar"
+                latex='\$'
+                unicode="&#x0024;"/> <!-- DOLLAR SIGN -->
+    <kbdkeyinfo name="percent"
+                latex='\%'
+                unicode="&#x0025;"/> <!-- PERCENT SIGN -->
+    <!-- pair of braces is not confused as AVT notation -->
+    <kbdkeyinfo name="openbrace"
+                latex='\textbraceleft'
+                unicode="{{"/> <!-- LEFT CURLY BRACKET -->
+    <kbdkeyinfo name="closebrace"
+                latex='\textbraceright'
+                unicode="}}"/> <!-- RIGHT CURLY BRACKET -->
+    <kbdkeyinfo name="hash"
+                latex='\#'
+                unicode="&#x0023;"/> <!-- OCTOTHORPE -->
+    <kbdkeyinfo name="backslash"
+                latex='\textbackslash'
+                unicode="&#x005C;"/> <!-- BACKSLASH -->
+    <kbdkeyinfo name="tilde"
+                latex='\textasciitilde'
+                unicode="&#x007E;"/> <!-- TILDE -->
+    <kbdkeyinfo name="circumflex"
+                latex='\textasciicircum'
+                unicode="&#x005E;"/> <!-- CIRCUMFLEX ACCENT -->
+    <kbdkeyinfo name="underscore"
+                latex='\textunderscore'
+                unicode="&#x005F;"/> <!-- LOW LINE -->
 </xsl:variable>
 
 <!-- If read from a file via "document()" then   -->
@@ -8532,26 +8569,34 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <!-- a common mistake and often hard to detect/locate -->
 <!-- http://www.stylusstudio.com/xsllist/200412/post20720.html -->
 <xsl:template match="xref" mode="check-ref">
-    <xsl:param name="ref" />
-    <xsl:variable name="target" select="id($ref)" />
-    <xsl:if test="not(exsl:node-set($target))">
-        <xsl:message>MBX:WARNING: unresolved &lt;xref&gt; due to unknown reference "<xsl:value-of select="$ref"/>"</xsl:message>
-        <xsl:apply-templates select="." mode="location-report" />
-        <xsl:variable name="inline-warning">
-            <xsl:text>Unresolved xref, reference "</xsl:text>
-            <xsl:value-of select="$ref"/>
-            <xsl:text>"; check spelling or use "provisional" attribute</xsl:text>
-        </xsl:variable>
-        <xsl:variable name="margin-warning">
-            <xsl:text>Unresolved xref</xsl:text>
-        </xsl:variable>
-        <xsl:call-template name="inline-warning">
-            <xsl:with-param name="warning" select="$inline-warning" />
-        </xsl:call-template>
-        <xsl:call-template name="margin-warning">
-            <xsl:with-param name="warning" select="$margin-warning" />
-        </xsl:call-template>
-    </xsl:if>
+    <xsl:param name="ref"/>
+
+    <!-- Grab the template-context "xref" for the location report, -->
+    <!-- *before* a context switch into the (enhanced) source      -->
+    <xsl:variable name="the-xref" select="."/>
+    <!-- Switch context for "id()" search to what could be enhanced -->
+    <!-- source that would include "biblio" from an external file.  -->
+    <xsl:for-each select="$document-root">
+        <xsl:variable name="target" select="id($ref)"/>
+        <xsl:if test="not(exsl:node-set($target))">
+            <xsl:message>MBX:WARNING: unresolved &lt;xref&gt; due to unknown reference "<xsl:value-of select="$ref"/>"</xsl:message>
+            <xsl:apply-templates select="$the-xref" mode="location-report"/>
+            <xsl:variable name="inline-warning">
+                <xsl:text>Unresolved xref, reference "</xsl:text>
+                <xsl:value-of select="$ref"/>
+                <xsl:text>"; check spelling or use "provisional" attribute</xsl:text>
+            </xsl:variable>
+            <xsl:variable name="margin-warning">
+                <xsl:text>Unresolved xref</xsl:text>
+            </xsl:variable>
+            <xsl:call-template name="inline-warning">
+                <xsl:with-param name="warning" select="$inline-warning"/>
+            </xsl:call-template>
+            <xsl:call-template name="margin-warning">
+                <xsl:with-param name="warning" select="$margin-warning"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:for-each>
 </xsl:template>
 
 <!-- Parse, analyze switches, attributes -->
@@ -8588,6 +8633,9 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
         </xsl:when>
         <xsl:when test="@text='title'">
             <xsl:text>title</xsl:text>
+        </xsl:when>
+        <xsl:when test="@text='custom'">
+            <xsl:text>custom</xsl:text>
         </xsl:when>
         <!-- old (deprecated, 2017-07-25) autoname attribute -->
         <xsl:when test="@autoname='no'">
@@ -8631,6 +8679,9 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
         <xsl:when test="$xref-text-style='title'">
             <xsl:text>title</xsl:text>
         </xsl:when>
+        <xsl:when test="$xref-text-style='custom'">
+            <xsl:text>custom</xsl:text>
+        </xsl:when>
         <!-- use this when choose goes away
         <xsl:if test="not($xref-text-style = '')">
             <xsl:value-of select="$xref-text-style" />
@@ -8670,23 +8721,86 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
     <xsl:variable name="b-is-equation-target" select="$target/self::mrow or $target/self::men" />
     <!-- a bibliography target is exceptional -->
     <xsl:variable name="b-is-biblio-target" select="boolean($target/self::biblio)" />
+    <!-- a contributor target is exceptional -->
+    <xsl:variable name="b-is-contributor-target" select="boolean($target/self::contributor)"/>
     <!-- recognize content s potential override -->
     <xsl:variable name="b-has-content" select="not($custom-text = '')" />
+    <!-- check some situations that would lead to ineffective -->
+    <!-- cross-references due to empty text                   -->
     <xsl:choose>
-        <xsl:when test="$target/self::contributor">
+        <xsl:when test="$text-style = 'title'">
+            <xsl:variable name="the-title">
+                <xsl:apply-templates select="$target" mode="title-xref"/>
+            </xsl:variable>
+            <xsl:if test="$the-title = ''">
+                <xsl:message>
+                    <xsl:text>PTX:WARNING:    </xsl:text>
+                    <xsl:text>An &lt;xref&gt; wants to build text using a title to identify the target, but the target (which has @xml:id "</xsl:text>
+                    <xsl:value-of select="@ref"/>
+                    <xsl:text>") has no title, not even a default title.</xsl:text>
+                </xsl:message>
+                <xsl:apply-templates select="." mode="location-report"/>
+            </xsl:if>
+        </xsl:when>
+        <xsl:when test="$text-style = 'custom'">
+            <xsl:if test="not($b-has-content)">
+                <xsl:message>
+                    <xsl:text>PTX:WARNING:    </xsl:text>
+                    <xsl:text>An &lt;xref&gt; wants to use custom text to describe the target, but no custom text was provided as the content of the "xref".</xsl:text>
+                </xsl:message>
+                <xsl:apply-templates select="." mode="location-report" />
+            </xsl:if>
+        </xsl:when>
+        <!-- Any other case of a cross-reference employs a number, or parts -->
+        <!-- of a number for the target.  The signal of being numberless is -->
+        <!-- an empty result for the modal "number" template.  But it is    -->
+        <!-- subtler than that, especially for equations that can have      -->
+        <!-- "symbolic" tags via @tag, and the number/no-number dichotomy   -->
+        <!-- is complicated by element names and attributes.                -->
+        <!-- A cross-reference to a contributor is an exception.            -->
+        <xsl:otherwise>
+            <xsl:variable name="the-number">
+                <xsl:apply-templates select="$target" mode="xref-number">
+                    <xsl:with-param name="xref" select="." />
+                </xsl:apply-templates>
+            </xsl:variable>
+            <xsl:if test="($the-number = '') and not($b-is-contributor-target)">
+                <xsl:message>
+                    <xsl:text>PTX:WARNING:    </xsl:text>
+                    <xsl:text>An &lt;xref&gt; wants to build text using a number to identify the target, but the target (which has @xml:id "</xsl:text>
+                    <xsl:value-of select="@ref"/>
+                    <xsl:text>") does not have a number. You could try 'text="title"' or 'text="custom"' on the "xref".</xsl:text>
+                </xsl:message>
+                <xsl:apply-templates select="." mode="location-report"/>
+            </xsl:if>
+        </xsl:otherwise>
+    </xsl:choose>
+    <!-- Start massive "choose" for exceptions and ten general styles -->
+    <xsl:choose>
+        <xsl:when test="$b-is-contributor-target">
             <xsl:apply-templates select="$target/personname" />
         </xsl:when>
-        <!-- equation override -->
+        <!-- equations are different -->
+        <!-- custom or full number   -->
         <xsl:when test="$b-is-equation-target">
-            <xsl:if test="$b-has-content">
-                <xsl:copy-of select="$custom-text" />
-                <xsl:apply-templates select="." mode="xref-text-separator"/>
-            </xsl:if>
-            <xsl:text>(</xsl:text>
-            <xsl:apply-templates select="$target" mode="xref-number">
-                <xsl:with-param name="xref" select="." />
-            </xsl:apply-templates>
-            <xsl:text>)</xsl:text>
+            <!-- "custom" style replaces the number -->
+            <xsl:choose>
+                <xsl:when test="$text-style = 'custom'">
+                    <xsl:copy-of select="$custom-text"/>
+                </xsl:when>
+                <!-- prefixing with content is anomalous -->
+                <xsl:otherwise>
+                    <xsl:if test="$b-has-content">
+                        <xsl:copy-of select="$custom-text"/>
+                        <xsl:apply-templates select="." mode="xref-text-separator"/>
+                    </xsl:if>
+                    <xsl:text>(</xsl:text>
+                    <xsl:apply-templates select="$target" mode="xref-number">
+                        <xsl:with-param name="xref" select="." />
+                    </xsl:apply-templates>
+                    <xsl:text>)</xsl:text>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:when>
         <!-- bibliography override       -->
         <!-- number only, consumer wraps -->
@@ -8815,14 +8929,29 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
         </xsl:when>
         <xsl:when test="$text-style = 'title'">
             <xsl:choose>
-                <!-- content override of title -->
+                <!-- 2020-02-18: a content override of a title is now  -->
+                <!-- deprecated (since there is now a "custom" option  -->
+                <!-- for text).  But it still "works", with warnings   -->
+                <!-- here.  Clean this up to complete the deprecation. -->
+                <!-- (We don't do this with other deprecations since   -->
+                <!-- we can get here by a variety of routes.)          -->
                 <xsl:when test="$b-has-content">
+                    <xsl:message>
+                        <xsl:text>PTX:WARNING:    </xsl:text>
+                        <xsl:text>An &lt;xref&gt; requests a 'title' as its text but also provides alternate content.  The construction is deprecated as of 2020-02-18.  Instead, specify that xref/@text should be 'custom', either globally or on a per-xref basis.</xsl:text>
+                    </xsl:message>
+                    <xsl:apply-templates select="." mode="location-report" />
                     <xsl:copy-of select="$custom-text" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="$target" mode="title-xref"/>
                 </xsl:otherwise>
             </xsl:choose>
+        </xsl:when>
+        <xsl:when test="$text-style = 'custom'">
+            <!-- use the content, do not include a number, a warning -->
+            <!-- if the content is empty is provided elsewhere       -->
+            <xsl:copy-of select="$custom-text" />
         </xsl:when>
         <xsl:otherwise>
             <xsl:message>MBX:BUG:  NO XREF TEXT GENERATED</xsl:message>
@@ -9548,6 +9677,17 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
     <xsl:call-template name="section-mark-character"/>
 </xsl:template>
 
+<!-- Minus -->
+<!-- A hyphen/dash for use in text as subtraction or negation-->
+<xsl:template name="minus-character">
+    <xsl:call-template name="warn-unimplemented-character">
+        <xsl:with-param name="char-name" select="'minus'"/>
+    </xsl:call-template>
+</xsl:template>
+<xsl:template match="minus">
+    <xsl:call-template name="minus-character"/>
+</xsl:template>
+
 <!-- Times -->
 <!-- A "multiplication sign" symbol for use in text -->
 <xsl:template name="times-character">
@@ -9576,6 +9716,28 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 </xsl:template>
 <xsl:template match="solidus">
     <xsl:call-template name="solidus-character"/>
+</xsl:template>
+
+<!-- Obelus -->
+<!-- A "division" symbol for use in text -->
+<xsl:template name="obelus-character">
+    <xsl:call-template name="warn-unimplemented-character">
+        <xsl:with-param name="char-name" select="'obelus'"/>
+    </xsl:call-template>
+</xsl:template>
+<xsl:template match="obelus">
+    <xsl:call-template name="obelus-character"/>
+</xsl:template>
+
+<!-- Plus/Minus -->
+<!-- The combined symbol -->
+<xsl:template name="plusminus-character">
+    <xsl:call-template name="warn-unimplemented-character">
+        <xsl:with-param name="char-name" select="'plusminus'"/>
+    </xsl:call-template>
+</xsl:template>
+<xsl:template match="plusminus">
+    <xsl:call-template name="plusminus-character"/>
 </xsl:template>
 
 <!-- Backtick -->
@@ -10677,6 +10839,13 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
         <xsl:with-param name="date-string" select="'2019-11-29'" />
         <xsl:with-param name="message" select="'Google search is no longer specified with a string parameter.  Please switch to using the Publishers File for configuration, as documented in the PreTeXt Guide.'" />
             <xsl:with-param name="incorrect-use" select="$html.google-search != ''" />
+    </xsl:call-template>
+    <!--  -->
+    <!-- 2020-03-13  deprecated setup element in a webwork -->
+    <xsl:call-template name="deprecation-message">
+        <xsl:with-param name="occurrences" select="$document-root//webwork/setup" />
+        <xsl:with-param name="date-string" select="'2020-03-13'" />
+        <xsl:with-param name="message" select="'the &quot;setup&quot; element in a &quot;webwork&quot; is no longer necessary, simply use &quot;pg-code&quot;'"/>
     </xsl:call-template>
     <!--  -->
 </xsl:template>

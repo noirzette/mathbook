@@ -42,7 +42,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     extension-element-prefixes="exsl date str"
 >
 
-<xsl:import href="./mathbook-common.xsl" />
+<xsl:import href="./mathbook-common.xsl"/>
+<xsl:import href="./pretext-assembly.xsl"/>
 
 
 <!-- We create HTML5 output.  The @doctype-system attribute will    -->
@@ -374,6 +375,42 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- And a boolean variable for the presence of this service -->
 <xsl:variable name="b-google-cse" select="not($google-search-cx = '')" />
 
+<!--                       -->
+<!-- HTML Platform Options -->
+<!--                       -->
+
+<!-- 2019-12-17:  Under development, not documented -->
+
+<xsl:variable name="host-platform">
+    <xsl:choose>
+        <xsl:when test="$publication/html/platform/@host = 'web'">
+            <xsl:text>web</xsl:text>
+        </xsl:when>
+        <xsl:when test="$publication/html/platform/@host = 'runestone'">
+            <xsl:text>runestone</xsl:text>
+        </xsl:when>
+        <xsl:when test="$publication/html/platform/@host = 'aim'">
+            <xsl:text>aim</xsl:text>
+        </xsl:when>
+        <!-- not recognized, so warn and default -->
+        <xsl:when test="$publication/html/platform/@host">
+            <xsl:message >PTX:WARNING: HTML platform/@host in publisher file should be "web", "runestone", or "aim", not "<xsl:value-of select="$publication/html/platform/@host"/>".  Proceeding with default value: "web"</xsl:message>
+            <xsl:text>web</xsl:text>
+        </xsl:when>
+        <!-- the default is the "open web" -->
+        <xsl:otherwise>
+            <xsl:text>web</xsl:text>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:variable>
+
+<!-- Intent is for exactly one of these boolean to be true -->
+<!-- 'web' is the default, so we may not condition with it -->
+<!-- 2019-12-19: only 'web' vs. 'runestone' implemented    -->
+<xsl:variable name="b-host-web"       select="$host-platform = 'web'"/>
+<xsl:variable name="b-host-runestone" select="$host-platform = 'runestone'"/>
+<xsl:variable name="b-host-aim"       select="$host-platform = 'aim'"/>
+
 
 <!-- ################################################ -->
 <!-- Following is slated to migrate above, 2019-07-10 -->
@@ -651,6 +688,30 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- it on in the dedicated stylesheet for conversion to braille.   -->
 <xsl:variable name="b-braille" select="false()"/>
 
+<!-- The Runestone platform option requires output that can be used  -->
+<!-- on the server with a templating language/tool.  For books       -->
+<!-- originating from PreTeXt we use a non-default pair of strings.  -->
+<!-- This is because the default is {{, }} and these behave poorly   -->
+<!-- in  a/@href  output, since the outer pair looks like an XSL AVT -->
+<!-- and then the inner pair gets escaped as a reserved character in -->
+<!-- a URI.  (We can turn off URI-escaping with XSLT 2.0, but the    -->
+<!-- AVT confusion may still be a problem.)                          -->
+
+<!-- These are used two places, so defined globally, not  -->
+<!-- conditionally.  Due to their ubiquity in these two   -->
+<!-- concentrated locations, the variable names are       -->
+<!-- intentionally cryptic, contrary to usual practice.   -->
+<!-- rs = Runestone, o = open, c = close.                 -->
+
+<xsl:variable name="rso" select="'~._'"/>
+<xsl:variable name="rsc" select="'_.~'"/>
+
+<!-- Temporary, undocumented, and experimental -->
+<!-- all = old-style, necessary = new-style -->
+<xsl:param name="debug.knowl-production" select="'all'"/>
+<!-- edit above! -->
+<xsl:variable name="b-knowls-new" select="not($debug.knowl-production = 'all')"/>
+
 <!-- ############### -->
 <!-- Source Analysis -->
 <!-- ############### -->
@@ -670,7 +731,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:variable name="b-has-webwork-reps" select="boolean($document-root//webwork-reps)"/>
 <xsl:variable name="b-has-program"      select="boolean($document-root//program)"/>
 <xsl:variable name="b-has-sage"         select="boolean($document-root//sage)"/>
-<xsl:variable name="b-has-sfrac"        select="boolean($document-root//m[contains(text(),'sfrac')] or $document-root//md[contains(text(),'sfrac')] or $document-root//me[contains(text(),'sfrac')] or $document-root//mrow[contains(text(),'sfrac')])"/>
+<xsl:variable name="b-has-sfrac"        select="boolean($document-root//m[contains(text(),'sfrac')]|$document-root//md[contains(text(),'sfrac')]|$document-root//me[contains(text(),'sfrac')]|$document-root//mrow[contains(text(),'sfrac')])"/>
 <xsl:variable name="b-has-geogebra"     select="boolean($document-root//interactive[@platform='geogebra'])"/>
 <!-- 2018-04-06:  jsxgraph deprecated -->
 <xsl:variable name="b-has-jsxgraph"     select="boolean($document-root//jsxgraph)"/>
@@ -699,7 +760,12 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <!--  -->
     <xsl:apply-templates select="mathbook|pretext" mode="generic-warnings" />
     <xsl:apply-templates select="mathbook|pretext" mode="deprecation-warnings" />
-    <xsl:apply-templates />
+    <!-- Usually no manifest is created -->
+    <xsl:call-template name="runestone-manifest"/>
+    <!-- The main event                          -->
+    <!-- We process the enhanced source pointed  -->
+    <!-- to by $root at  /mathbook  or  /pretext -->
+    <xsl:apply-templates select="$root"/>
 </xsl:template>
 
 <!-- We process structural nodes via chunking routine in xsl/mathbook-common.xsl    -->
@@ -708,7 +774,12 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:template match="/mathbook|/pretext">
     <xsl:call-template name="index-redirect-page"/>
     <xsl:apply-templates mode="chunking" />
-    <xsl:apply-templates select="$document-root" mode="xref-knowl" />
+    <xsl:if test="$b-knowls-new">
+        <xsl:apply-templates select="." mode="make-efficient-knowls"/>
+    </xsl:if>
+    <xsl:if test="not($b-knowls-new)">
+        <xsl:apply-templates select="$document-root" mode="xref-knowl-old"/>
+    </xsl:if>
 </xsl:template>
 
 <!-- However, some MBX document types do not have    -->
@@ -1293,7 +1364,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 </xsl:call-template>
             </th>
         </tr>
-        <xsl:apply-templates select="//notation" mode="backmatter" />
+        <xsl:apply-templates select="$document-root//notation" mode="backmatter" />
     </table>
 </xsl:template>
 
@@ -1345,6 +1416,16 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                     </xsl:if>
                 </xsl:with-param>
             </xsl:apply-templates>
+            <!-- When we make knowl content selectively, we may    -->
+            <!-- need to produce the content for the notation link -->
+            <xsl:if test="$b-knowls-new">
+                <xsl:variable name="is-knowl">
+                    <xsl:apply-templates select="." mode="xref-as-knowl"/>
+                </xsl:variable>
+                <xsl:if test="$is-knowl = 'true'">
+                    <xsl:apply-templates select="." mode="xref-knowl"/>
+                </xsl:if>
+            </xsl:if>
         </xsl:when>
         <!-- nothing interesting here, so step up a level -->
         <!-- Eventually we find the top-level structure   -->
@@ -1457,6 +1538,16 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:text> </xsl:text>
         <xsl:apply-templates select="." mode="title-xref"/>
     </div>
+    <!-- When we make knowl content selectively, we may   -->
+    <!-- need to produce the content for a "list-of" link -->
+    <xsl:if test="$b-knowls-new">
+        <xsl:variable name="is-knowl">
+            <xsl:apply-templates select="." mode="xref-as-knowl"/>
+        </xsl:variable>
+        <xsl:if test="$is-knowl = 'true'">
+            <xsl:apply-templates select="." mode="xref-knowl"/>
+        </xsl:if>
+    </xsl:if>
 </xsl:template>
 
 <!-- ################ -->
@@ -1985,6 +2076,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- a structural document node                                  -->
 <!-- Recursion always halts, since "mathbook" is structural      -->
 <!-- TODO: save knowl or section link                            -->
+<!-- We create content of "xref-knowl" if it is a block.         -->
+<!-- TODO: identify index targets consistently in "make-efficient-knowls" -->
+<!-- template, presumably parents of "idx" that are knowlable.            -->
 <xsl:template match="index-list" mode="index-enclosure">
     <xsl:param name="enclosure"/>
 
@@ -2004,6 +2098,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                     <xsl:apply-templates select="$enclosure" mode="type-name"/>
                 </xsl:with-param>
             </xsl:apply-templates>
+            <xsl:if test="$block = 'true'">
+                <xsl:apply-templates select="$enclosure" mode="xref-knowl"/>
+            </xsl:if>
         </xsl:when>
         <xsl:otherwise>
             <!-- Recurse.  The "index-list" gets passed along unchanged,     -->
@@ -2022,7 +2119,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Many elements are candidates for cross-references     -->
 <!-- and many of those are nicely implemented as knowls.   -->
 <!-- We traverse the entire document tree with a modal     -->
-<!-- "xref-knowl" template.  When it encounters an element -->
+<!-- "xref-knowl-old" template.  When it encounters an element -->
 <!-- that needs a cross-reference target as a knowl file,  -->
 <!-- that file is built and the tree traversal continues.  -->
 <!--                                                       -->
@@ -2055,7 +2152,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- mrow is only ever an "xref" knowl, and has enclosing content    -->
 <!-- These are "top-level" starting places for this process,         -->
 <!-- assuming divisions are never knowled                            -->
-<xsl:template match="*" mode="xref-knowl">
+<!-- NB: when this leaves, search for two uses in code comments -->
+<xsl:template match="*" mode="xref-knowl-old">
     <xsl:variable name="knowlizable">
         <xsl:apply-templates select="." mode="xref-as-knowl" />
     </xsl:variable>
@@ -2076,7 +2174,108 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:if>
     <!-- recurse into contents, as we may just        -->
     <!-- "skip over" some containers, such as an "ol" -->
-    <xsl:apply-templates select="*" mode="xref-knowl" />
+    <xsl:apply-templates select="*" mode="xref-knowl-old" />
+</xsl:template>
+
+<xsl:template match="*" mode="make-efficient-knowls">
+    <xsl:variable name="xref-ids">
+        <xsl:for-each select="$document-root//xref">
+            <xsl:choose>
+                <!-- ignore, no-op -->
+                <xsl:when test="@provisional"/>
+                <!-- just use @first, clean-up spaces -->
+                <xsl:when test="@first and @last">
+                    <xid>
+                        <xsl:value-of select="normalize-space(@first)"/>
+                    </xid>
+                </xsl:when>
+                <!-- a space-separated or comma-separated list -->
+                <!-- to bust up and wrap many times in "xid"   -->
+                <xsl:when test="@ref and (contains(normalize-space(@ref), ' ') or contains(@ref, ','))">
+                    <xsl:variable name="clean-list" select="concat(normalize-space(translate(@ref, ',', ' ')), ' ')"/>
+                    <xsl:call-template name="split-ref-list">
+                        <xsl:with-param name="list" select="$clean-list"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <!-- clean-up reference as a courtesy -->
+                <xsl:when test="@ref">
+                    <xid>
+                        <xsl:value-of select="normalize-space(@ref)"/>
+                    </xid>
+                </xsl:when>
+                <!-- could error-check here -->
+                <xsl:otherwise/>
+            </xsl:choose>
+            <!-- TODO: cruise "idx" to get references to parents -->
+        </xsl:for-each>
+    </xsl:variable>
+    <xsl:variable name="id-nodes" select="exsl:node-set($xref-ids)"/>
+
+    <!-- might work better if sorted first -->
+    <xsl:variable name="unique-ids-rtf">
+        <xsl:for-each select="$id-nodes/xid[not(. = preceding::*/.)]">
+            <xsl:copy-of select="."/>
+        </xsl:for-each>
+    </xsl:variable>
+    <xsl:variable name="unique-ids" select="exsl:node-set($unique-ids-rtf)"/>
+
+    <xsl:for-each select="$unique-ids/xid">
+        <!-- context change coming, so save off the actual id string -->
+        <xsl:variable name="the-id" select="."/>
+        <!-- for-each only loops over one item, but changes context, -->
+        <!-- so the id() function is checking against the right document -->
+        <xsl:for-each select="$document-root">
+            <xsl:variable name="target" select="id($the-id)"/>
+            <xsl:variable name="is-knowl">
+                <xsl:apply-templates select="$target" mode="xref-as-knowl"/>
+            </xsl:variable>
+            <xsl:if test="$is-knowl = 'true'">
+                <xsl:apply-templates select="$target" mode="xref-knowl"/>
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:for-each>
+</xsl:template>
+
+<!-- Decompose a string of references into elements for id  -->
+<!-- rtf above.  Note: each token has a space following it  -->
+<xsl:template name="split-ref-list">
+    <xsl:param name="list"/>
+
+    <xsl:choose>
+        <!-- final space causes recursion with -->
+        <!-- totally empty list, so halt       -->
+        <xsl:when test="$list = ''"/>
+        <xsl:otherwise>
+            <xid>
+                <xsl:value-of select="substring-before($list, ' ')"/>
+            </xid>
+            <xsl:call-template name="split-ref-list">
+                <xsl:with-param name="list" select="substring-after($list, ' ')"/>
+            </xsl:call-template>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- Context is an object that is the target of a cross-reference    -->
+<!-- ("xref") and is known/checked to be implemented as a knowl.     -->
+<!-- We cruise children for the necessity of hidden content which we -->
+<!-- impersonate with a file knowl that looks like a hidden knowl.   -->
+<xsl:template match="*" mode="xref-knowl">
+    <xsl:apply-templates select="." mode="manufacture-knowl">
+        <xsl:with-param name="knowl-type" select="'xref'"/>
+    </xsl:apply-templates>
+    <!-- Cruise children, note this is a context switch         -->
+    <!-- Looking for born-hidden knowls in "xref" knowl content -->
+    <xsl:for-each select=".//*">
+        <xsl:variable name="hidden">
+            <xsl:apply-templates select="." mode="is-hidden"/>
+        </xsl:variable>
+        <xsl:if test="$hidden = 'true'">
+            <xsl:apply-templates select="." mode="manufacture-knowl">
+                <xsl:with-param name="knowl-type" select="'hidden'"/>
+            </xsl:apply-templates>
+        </xsl:if>
+    </xsl:for-each>
 </xsl:template>
 
 <!-- Build one, or two, files for knowl content -->
@@ -2563,7 +2762,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- Original, born hidden.  The element knows if it should be hidden on the page in an embedded knowl via the modal "is-hidden" template.  So a link is written on the page, and the main content is written onto the page as a hidden, embedded knowl.  The "b-original" flag (set to true) is passed through to templates for the children. -->
 
-<!-- Duplicates.  Duplicated versions, sans identification, are created by an extra, specialized, traversal of the entire document tree with the "xref-knowl" modal templates.  When an element is first encountered the infrastructure for an external file is constructed and the modal "body" template of the element is called with the "b-original" flag set to false.  The content of the knowl should have an overall header, explaining what it is, since it is a target of the cross-reference.  Now the body template will pass along the "b-original" flag set to false, indicating the production mode should be duplication.  For a block that is born hidden, we build an additional external knowl that duplicates it, so without identification, without an overall header, and without an in-context link.  -->
+<!-- Duplicates.  Duplicated versions, sans identification, are created by an extra, specialized, traversal of the entire document tree with the "xref-knowl-old" modal templates.  When an element is first encountered the infrastructure for an external file is constructed and the modal "body" template of the element is called with the "b-original" flag set to false.  The content of the knowl should have an overall header, explaining what it is, since it is a target of the cross-reference.  Now the body template will pass along the "b-original" flag set to false, indicating the production mode should be duplication.  For a block that is born hidden, we build an additional external knowl that duplicates it, so without identification, without an overall header, and without an in-context link.  -->
 
 <!-- Child elements born visible will be written into knowl files without identification.  Child elements born hidden will write a knowl link into the page, pointing to the duplicated (hidden) version.  -->
 
@@ -4210,8 +4409,29 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:param name="b-has-answer" />
     <xsl:param name="b-has-solution" />
 
-    <!-- structured (with components) versus unstructured (simply a bare statement) -->
     <xsl:choose>
+        <!-- intercept a reading question, when hosted on Runestone -->
+        <xsl:when test="ancestor::reading-questions and $b-host-runestone">
+            <div class="runestone">
+                <div data-component="shortanswer" class="journal alert alert-success" data-optional="" data-mathjax="">
+                    <xsl:attribute name="id">
+                        <xsl:apply-templates select="." mode="html-id"/>
+                    </xsl:attribute>
+                    <!-- structured versus unstructured -->
+                    <xsl:choose>
+                        <!-- subelements of the structured "statement" -->
+                        <xsl:when test="statement">
+                            <xsl:apply-templates select="statement/*"/>
+                        </xsl:when>
+                        <!-- all content, but in elements, e.g "p" -->
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="*"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </div>
+            </div>
+        </xsl:when>
+        <!-- now, structured versus unstructured -->
         <xsl:when test="statement">
             <xsl:if test="$b-has-statement">
                 <xsl:apply-templates select="statement">
@@ -5315,6 +5535,11 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:value-of select="$environment-fixed"/>
 </xsl:template>
 
+<!-- We cruise knowled content for necessity of hidden knowls -->
+<xsl:template match="*" mode="is-hidden">
+    <xsl:text>false</xsl:text>
+</xsl:template>
+
 <!-- ############################# -->
 <!-- End: Block Production, Knowls -->
 <!-- ############################# -->
@@ -5605,6 +5830,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:variable name="html-filename" select="concat($base-pathname, '.html')" />
 
     <object data="{$html-filename}">
+        <xsl:attribute name="id">
+            <xsl:apply-templates select="." mode="visible-id" />
+        </xsl:attribute>
         <xsl:attribute name="width">
             <xsl:apply-templates select="." mode="get-width-pixels" />
         </xsl:attribute>
@@ -6139,6 +6367,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:call-template name="knowl" />
                 <xsl:call-template name="fonts" />
                 <xsl:call-template name="css" />
+                <xsl:call-template name="runestone-header"/>
                 <xsl:call-template name="font-awesome" />
             </head>
             <body>
@@ -7105,23 +7334,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:value-of select="$content" />
         </xsl:when>
         <!-- 2nd exceptional case, xref in mrow of display math  -->
-        <!-- Requires https://pretextbook.org/js/lib/mathjaxknowl.js -->
-        <!-- loaded as a MathJax extension for knowls to render  -->
+        <!--   with Javascript (pure HTML) we can make knowls    -->
+        <!--   without Javascript (EPUB) we use plain text       -->
         <xsl:when test="parent::mrow">
-            <!-- MathJax expects similar constructions, variation is here -->
-            <xsl:choose>
-                <xsl:when test="$knowl='true'">
-                    <xsl:text>\knowl{</xsl:text>
-                    <xsl:apply-templates select="$target" mode="xref-knowl-filename" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>\href{</xsl:text>
-                    <xsl:apply-templates select="$target" mode="url" />
-                </xsl:otherwise>
-            </xsl:choose>
-            <xsl:text>}{</xsl:text>
-            <xsl:value-of select="$content" />
-            <xsl:text>}</xsl:text>
+            <xsl:apply-templates select="." mode="xref-link-display-math">
+                <xsl:with-param name="target" select="$target"/>
+                <xsl:with-param name="content" select="$content"/>
+            </xsl:apply-templates>
         </xsl:when>
         <!-- usual case, always an "a" element (anchor) -->
         <xsl:otherwise>
@@ -7158,6 +7377,34 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             </xsl:element>
         </xsl:otherwise>
     </xsl:choose>
+</xsl:template>
+
+<!-- For pure HTML we can make a true knowl or traditional link -->
+<!-- when an "xref" is authored inside of a display math "mrow" -->
+<!-- Requires https://pretextbook.org/js/lib/mathjaxknowl.js    -->
+<!-- loaded as a MathJax extension for knowls to render         -->
+<xsl:template match="*" mode="xref-link-display-math">
+    <xsl:param name="target"/>
+    <xsl:param name="content"/>
+
+    <!-- this could be passed as a parameter, but -->
+    <!-- we have $target anyway, so can recompute -->
+    <xsl:variable name="knowl">
+        <xsl:apply-templates select="$target" mode="xref-as-knowl"/>
+    </xsl:variable>
+    <xsl:choose>
+        <xsl:when test="$knowl='true'">
+            <xsl:text>\knowl{</xsl:text>
+            <xsl:apply-templates select="$target" mode="xref-knowl-filename"/>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:text>\href{</xsl:text>
+            <xsl:apply-templates select="$target" mode="url"/>
+        </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>}{</xsl:text>
+    <xsl:value-of select="$content"/>
+    <xsl:text>}</xsl:text>
 </xsl:template>
 
 <!-- A URL is needed various places, such as                     -->
@@ -7818,6 +8065,12 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>&#xa7;</xsl:text>
 </xsl:template>
 
+<!-- Minus -->
+<!-- A hyphen/dash for use in text as subtraction or negation-->
+<xsl:template name="minus-character">
+    <xsl:text>&#x2212;</xsl:text>
+</xsl:template>
+
 <!-- Times -->
 <!-- A "multiplication sign" symbol for use in text   -->
 <!-- Styled to enhance, consensus at Google Group was -->
@@ -7841,6 +8094,18 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Fraction bar, not as steep as a forward slash -->
 <xsl:template name="solidus-character">
     <xsl:text>&#x2044;</xsl:text>
+</xsl:template>
+
+<!-- Obelus -->
+<!-- A "division" symbol for use in text -->
+<xsl:template name="obelus-character">
+    <xsl:text>&#xf7;</xsl:text>
+</xsl:template>
+
+<!-- Plus/Minus -->
+<!-- The combined symbol -->
+<xsl:template match="plusminus">
+    <xsl:text>&#xb1;</xsl:text>
 </xsl:template>
 
 <!-- Backtick -->
@@ -8200,32 +8465,49 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- See common file for more on language handlers, and "language-prettify" template          -->
 <!-- Coordinate with disabling in Sage Notebook production                                    -->
 <xsl:template match="program">
-    <!-- with language, pre.prettyprint activates styling and Prettifier -->
-    <!-- with no language, pre.plainprint just yields some styling       -->
-    <xsl:variable name="pretty-language">
-        <xsl:apply-templates select="." mode="prettify-language"/>
-    </xsl:variable>
-    <pre>
-        <xsl:attribute name="class">
-            <xsl:choose>
-                <xsl:when test="not($pretty-language = '')">
-                    <xsl:text>prettyprint</xsl:text>
-                    <xsl:text> </xsl:text>
-                    <xsl:text>lang-</xsl:text>
-                    <xsl:value-of select="$pretty-language" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>plainprint</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:attribute>
-        <xsl:call-template name="sanitize-text">
-            <xsl:with-param name="text" select="input" />
-        </xsl:call-template>
-    </pre>
+    <xsl:choose>
+        <xsl:when test="$b-host-runestone and (@language = 'python')">
+        <!-- Runestone ActiveCode, automatically -->
+            <div data-childcomponent="ac2_2_1" class="runestone explainer ac_section alert alert-warning">
+                <textarea data-component="activecode" data-lang="python" data-timelimit="25000" data-codelens="true" data-audio="">
+                    <xsl:attribute name="id">
+                        <xsl:apply-templates select="." mode="html-id" />
+                    </xsl:attribute>
+                    <xsl:call-template name="sanitize-text">
+                        <xsl:with-param name="text" select="input" />
+                    </xsl:call-template>
+                </textarea>
+            </div>
+        </xsl:when>
+        <xsl:otherwise>
+            <!-- with language, pre.prettyprint activates styling and Prettifier -->
+            <!-- with no language, pre.plainprint just yields some styling       -->
+            <xsl:variable name="pretty-language">
+                <xsl:apply-templates select="." mode="prettify-language"/>
+            </xsl:variable>
+            <pre>
+                <xsl:attribute name="class">
+                    <xsl:choose>
+                        <xsl:when test="not($pretty-language = '')">
+                            <xsl:text>prettyprint</xsl:text>
+                            <xsl:text> </xsl:text>
+                            <xsl:text>lang-</xsl:text>
+                            <xsl:value-of select="$pretty-language" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:text>plainprint</xsl:text>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:attribute>
+                <xsl:call-template name="sanitize-text">
+                    <xsl:with-param name="text" select="input" />
+                </xsl:call-template>
+            </pre>
+        </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
-<!-- Interactive Programs -->
+<!-- Interactive Programs, PyTutor -->
 <!-- Use the PyTutor embedding to provide a Python program -->
 <!-- where a reader can interactively step through the program -->
 <xsl:template match="program[@interactive='pythontutor']">
@@ -8271,22 +8553,26 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:if>
 </xsl:template>
 
-<xsl:template name="login-header">
-    <link href="{$html.css.server}/css/{$html.css.version}/features.css" rel="stylesheet" type="text/css"/>
-    <script>
-        <xsl:text>var logged_in = false;&#xa;</xsl:text>
-        <xsl:text>var role = 'student';&#xa;</xsl:text>
-        <xsl:text>var guest_access = true;&#xa;</xsl:text>
-        <xsl:text>var login_required = false;&#xa;</xsl:text>
-        <xsl:text>var js_version = </xsl:text>
-        <xsl:value-of select='$html.js.version'/>
-        <xsl:text>;&#xa;</xsl:text>
-    </script>
+<xsl:template name="aim-login-header">
+    <xsl:if test="$b-host-aim">
+        <link href="{$html.css.server}/css/{$html.css.version}/features.css" rel="stylesheet" type="text/css"/>
+        <script>
+            <xsl:text>var logged_in = false;&#xa;</xsl:text>
+            <xsl:text>var role = 'student';&#xa;</xsl:text>
+            <xsl:text>var guest_access = true;&#xa;</xsl:text>
+            <xsl:text>var login_required = false;&#xa;</xsl:text>
+            <xsl:text>var js_version = </xsl:text>
+            <xsl:value-of select='$html.js.version'/>
+            <xsl:text>;&#xa;</xsl:text>
+        </script>
+    </xsl:if>
 </xsl:template>
 
-<xsl:template name="login-footer">
-    <div class="login-link"><span id="loginlogout" class="login">login</span></div>
-    <script src="{$html.js.server}/js/{$html.js.version}/login.js"></script>
+<xsl:template name="aim-login-footer">
+    <xsl:if test="$b-host-aim">
+        <div class="login-link"><span id="loginlogout" class="login">login</span></div>
+        <script src="{$html.js.server}/js/{$html.js.version}/login.js"></script>
+    </xsl:if>
 </xsl:template>
 
 <!-- Console Session -->
@@ -8322,6 +8608,171 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:call-template name="sanitize-text">
         <xsl:with-param name="text" select="." />
     </xsl:call-template>
+</xsl:template>
+
+<!-- ######### -->
+<!-- Runestone -->
+<!-- ######### -->
+
+<!-- Hosting at Runestone Academy -->
+
+<!-- Runestone Javascript -->
+<xsl:template name="runestone-header">
+    <!-- without switch, do not add *anything* -->
+    <xsl:if test="$b-host-runestone">
+        <!-- Runestone templating for customizing hosted books -->
+        <!-- Unclear if a concat() of five strings would be cleaner? -->
+        <script type="text/javascript">
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:text>eBookConfig = {};&#xa;</xsl:text>
+        <xsl:text>eBookConfig.host = '';&#xa;</xsl:text>
+        <xsl:text>eBookConfig.useRunestoneServices = true;&#xa;</xsl:text>
+        <xsl:text>eBookConfig.app = eBookConfig.host + '/' + '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= request.application </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+        <xsl:text>eBookConfig.course = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= course_name </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+        <xsl:text>eBookConfig.basecourse = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= base_course </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+        <xsl:text>eBookConfig.isLoggedIn = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_logged_in</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+        <xsl:text>eBookConfig.email = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_email </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+        <xsl:text>eBookConfig.isInstructor = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_instructor </xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+        <xsl:text>eBookConfig.ajaxURL = eBookConfig.app + "/ajax/";&#xa;</xsl:text>
+        <xsl:text>eBookConfig.logLevel = 10;&#xa;</xsl:text>
+        <xsl:text>eBookConfig.username = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_id</xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+        <xsl:text>eBookConfig.readings = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= readings</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+        <xsl:text>eBookConfig.activities = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= XML(activity_info) </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+        <xsl:text>eBookConfig.downloadsEnabled = </xsl:text><xsl:value-of select="$rso"/><xsl:text>=downloads_enabled</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+        <xsl:text>eBookConfig.allow_pairs = </xsl:text><xsl:value-of select="$rso"/><xsl:text>=allow_pairs</xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+        <xsl:text>eBookConfig.enableScratchAC = false;&#xa;</xsl:text>
+        </script>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.emitter.bidi.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.emitter.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.fallbacks.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.messagestore.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.parser.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.language.js"></script>
+
+        <script type="text/javascript" src="_static/runestone.js"></script>
+        <style>
+        <xsl:text>.dropdown {&#xa;</xsl:text>
+        <xsl:text>    position: relative;&#xa;</xsl:text>
+        <xsl:text>    display: inline-block;&#xa;</xsl:text>
+        <xsl:text>    height: 39px;&#xa;</xsl:text>
+        <xsl:text>    width: 50px;&#xa;</xsl:text>
+        <xsl:text>    margin-left: auto;&#xa;</xsl:text>
+        <xsl:text>    margin-right: auto;&#xa;</xsl:text>
+        <xsl:text>    padding: 7px;&#xa;</xsl:text>
+        <xsl:text>    text-align: center;&#xa;</xsl:text>
+        <xsl:text>    background-color: #eeeeee;&#xa;</xsl:text>
+        <xsl:text>    border: 1px solid;&#xa;</xsl:text>
+        <xsl:text>    border-color: #aaaaaa;&#xa;</xsl:text>
+        <xsl:text> }&#xa;</xsl:text>
+        <xsl:text> .dropdown-content {&#xa;</xsl:text>
+        <xsl:text>    position: absolute;&#xa;</xsl:text>
+        <xsl:text>    display: none;&#xa;</xsl:text>
+        <xsl:text>    left: 300px;&#xa;</xsl:text>
+        <xsl:text>    text-align: left;&#xa;</xsl:text>
+        <xsl:text>    font-family: 'Open Sans', 'Helvetica Neue', 'Helvetica';&#xa;</xsl:text>
+        <xsl:text>}&#xa;</xsl:text>
+        <xsl:text>.dropdown:hover {&#xa;</xsl:text>
+        <xsl:text>    background-color: #ddd;&#xa;</xsl:text>
+        <xsl:text>}&#xa;</xsl:text>
+        <xsl:text>.dropdown:hover .dropdown-content {&#xa;</xsl:text>
+        <xsl:text>    display: block;&#xa;</xsl:text>
+        <xsl:text>    position: fixed;&#xa;</xsl:text>
+        <xsl:text>}&#xa;</xsl:text>
+        <xsl:text>.dropdown-content {&#xa;</xsl:text>
+        <xsl:text>    background-color: white;&#xa;</xsl:text>
+        <xsl:text>    z-index: 1800;&#xa;</xsl:text>
+        <xsl:text>    min-width: 100px;&#xa;</xsl:text>
+        <xsl:text>    padding: 5px;&#xa;</xsl:text>
+        <xsl:text>}&#xa;</xsl:text>
+        <xsl:text>.dropdown-content a {&#xa;</xsl:text>
+        <xsl:text>    display: block;&#xa;</xsl:text>
+        <xsl:text>    text-decoration: none;&#xa;</xsl:text>
+        <xsl:text>    color: #662211;&#xa;</xsl:text>
+        <xsl:text>}&#xa;</xsl:text>
+        <xsl:text>.dropdown-content a:hover {&#xa;</xsl:text>
+        <xsl:text>    background-color: #671d12;&#xa;</xsl:text>
+        <xsl:text>    color: #ffffff;&#xa;</xsl:text>
+        <xsl:text>}&#xa;</xsl:text>
+        </style>
+    </xsl:if>
+</xsl:template>
+
+<!-- Runestone Manifest -->
+<!-- HTML ID and real title for each chapter and section -->
+<!-- A PTX "section" is a Runestone "subchapter"         -->
+<!-- Document hierarchy is preserved in XML structure    -->
+<!-- TODO: add exercises as "question"                   -->
+
+<!-- Conditional run-in -->
+<xsl:template name="runestone-manifest">
+    <xsl:if test="$b-host-runestone and $b-is-book">
+        <!-- $document-root *will* be a book -->
+        <xsl:apply-templates select="$document-root" mode="runestone-manifest"/>
+    </xsl:if>
+</xsl:template>
+
+<xsl:template match="book" mode="runestone-manifest">
+    <exsl:document href="runestone-manifest.xml" method="xml" indent="yes" encoding="UTF-8">
+        <manifest>
+            <!-- LaTeX packages and macros first -->
+            <latex-macros>
+                <xsl:text>&#xa;</xsl:text>
+                <xsl:value-of select="$latex-packages-mathjax"/>
+                <xsl:value-of select="$latex-macros"/>
+            </latex-macros>
+            <!-- Now recurse into chapters   -->
+            <xsl:apply-templates select="*" mode="runestone-manifest"/>
+        </manifest>
+    </exsl:document>
+</xsl:template>
+
+<xsl:template match="chapter" mode="runestone-manifest">
+    <chapter>
+        <id>
+            <xsl:apply-templates select="." mode="html-id"/>
+        </id>
+        <title>
+            <xsl:apply-templates select="." mode="title-full"/>
+        </title>
+    <!-- recurse into PTX sections -->
+    <xsl:apply-templates select="*" mode="runestone-manifest"/>
+    </chapter>
+</xsl:template>
+
+<xsl:template match="section|chapter/reading-questions" mode="runestone-manifest">
+    <subchapter>
+        <id>
+            <xsl:apply-templates select="." mode="html-id"/>
+        </id>
+        <title>
+            <xsl:apply-templates select="." mode="title-full"/>
+        </title>
+        <!-- nearly a dead end, recurse only into exercises -->
+        <!-- within this RS "subchapter" but at any depth   -->
+        <xsl:apply-templates select=".//exercise"  mode="runestone-manifest"/>
+    </subchapter>
+    <!-- dead end structurally, no more recursion, even if "subsection", etc. -->
+</xsl:template>
+
+<!-- Reading Questions (only) to the manifest -->
+<xsl:template match="reading-questions/exercise" mode="runestone-manifest">
+    <question>
+        <xsl:apply-templates select="." mode="exercise-components"/>
+    </question>
+</xsl:template>
+
+<!-- Appendix is explicitly no-op, so we do not recurse into "section"  -->
+<xsl:template match="appendix" mode="runestone-manifest"/>
+
+<!-- Traverse the tree,looking for things to do          -->
+<!-- http://stackoverflow.com/questions/3776333/         -->
+<!-- stripping-all-elements-except-one-in-xml-using-xslt -->
+<xsl:template match="*" mode="runestone-manifest">
+    <xsl:apply-templates select="*" mode="runestone-manifest"/>
 </xsl:template>
 
 
@@ -9132,7 +9583,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <!-- webwork's iframeResizer needs to come before sage -->
             <xsl:call-template name="webwork" />
             <xsl:apply-templates select="." mode="sagecell" />
-            <xsl:call-template name="goggle-code-prettifier" />
+            <xsl:call-template name="google-code-prettifier" />
             <xsl:call-template name="google-search-box-js" />
             <xsl:call-template name="mathbook-js" />
             <xsl:call-template name="knowl" />
@@ -9141,8 +9592,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:call-template name="geogebra" />
             <xsl:call-template name="jsxgraph" />
             <xsl:call-template name="css" />
-            <xsl:call-template name="login-header" />
+            <xsl:call-template name="aim-login-header" />
             <xsl:call-template name="pytutor-header" />
+            <xsl:call-template name="runestone-header"/>
             <xsl:call-template name="font-awesome" />
         </head>
         <body>
@@ -9223,7 +9675,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:call-template name="google-universal"/>
             <xsl:call-template name="google-gst"/>
             <xsl:call-template name="pytutor-footer" />
-            <xsl:call-template name="login-footer" />
+            <xsl:call-template name="aim-login-footer" />
         </body>
     </html>
     </exsl:document>
@@ -9259,6 +9711,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:call-template name="geogebra" />
             <xsl:call-template name="jsxgraph" />
             <xsl:call-template name="css" />
+            <xsl:call-template name="runestone-header"/>
             <xsl:call-template name="font-awesome" />
         </head>
         <!-- TODO: needs some padding etc -->
@@ -9820,6 +10273,54 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                                 <xsl:call-template name="calculator-toggle" />
                                 <xsl:call-template name="calculator" />
                             </xsl:if>
+                            <!-- Runestone user menu -->
+                            <!-- "Bust w/ Silhoutte" is U+1F464, used as menu icon    -->
+                            <!-- Templating {{ and }} really wreak havoc in  a/@href  -->
+                            <!-- since the outer pair looks like an AVT and the inner -->
+                            <!-- pair gets percent-encoded (which we cannot control   -->
+                            <!-- in XSLT 1.0). So we use the odd delimiters defined   -->
+                            <!-- above and Runestone will use them instead            -->
+                            <xsl:if test="$b-host-runestone">
+                                <div class="dropdown">
+                                    <xsl:text>&#x1F464;</xsl:text>
+                                    <div class="dropdown-content">
+                                        <xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> if auth.user: </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <a href="{$rso}=URL('assignments','chooseAssignment'){$rsc}">Assignments</a>
+                                        <a href="{$rso}=URL('assignments','practice'){$rsc}">Practice</a>
+                                        <xsl:value-of select="$rso"/><xsl:text> if settings.academy_mode: </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <hr/>
+                                        <a href='/{$rso}=request.application{$rsc}/default/courses'>Change Course</a>
+                                        <xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> pass </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> pass </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> if auth.user: </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <hr/>
+                                        <a href='/{$rso}=request.application{$rsc}/admin/index'>Instructor's Page</a>
+                                        <xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> pass </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <hr/>
+                                        <xsl:value-of select="$rso"/><xsl:text> pass </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> if not settings.lti_only_mode: </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> if auth.user: </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <a href="{$rso}=URL('dashboard','studentreport'){$rsc}">Progress Page</a>
+                                        <hr/>
+                                        <a href="/{$rso}=request.application{$rsc}/default/user/profile">Edit Profile</a>
+                                        <a href="/{$rso}=request.application{$rsc}/default/user/change_password">Change Password</a>
+                                        <a href="{$rso}=URL('default','user/logout'){$rsc}">Log Out</a>
+                                        <xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> else: </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <a href="{$rso}=URL('default','user/register'){$rsc}">Register</a>
+                                        <a href="{$rso}=URL('default','user/login'){$rsc}">Login</a>
+                                        <xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> pass </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> else: </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                        <a href="{$rso}=URL('assignments','index'){$rsc}">Progress Page</a>
+                                        <xsl:text>&#xa;</xsl:text>
+                                        <xsl:value-of select="$rso"/><xsl:text> pass </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
+                                    </div>
+                                </div>
+                            </xsl:if>
                             <!-- Span to encase Prev/Up/Next buttons and float right    -->
                             <!-- Each button gets an id for keypress recognition/action -->
                             <xsl:element name="span">
@@ -10000,9 +10501,16 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                     <xsl:apply-templates select="." mode="url"/>
                </xsl:variable>
                <!-- text of anchor's class, active if a match, otherwise plain -->
-               <!-- Based on node-set union size, "part" is for styling        -->
+               <!-- Based on node-set union size; "frontmatter", "backmatter", -->
+               <!-- "part" are for styling                                     -->
                <xsl:variable name="class">
                     <xsl:text>link</xsl:text>
+                    <xsl:if test="self::frontmatter">
+                        <xsl:text> frontmatter</xsl:text>
+                    </xsl:if>
+                    <xsl:if test="self::backmatter">
+                        <xsl:text> backmatter</xsl:text>
+                    </xsl:if>
                     <xsl:if test="self::part">
                         <xsl:text> part</xsl:text>
                     </xsl:if>
@@ -10174,7 +10682,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:text>    jax: ["input/AsciiMath"],&#xa;</xsl:text>
         <xsl:text>    extensions: ["asciimath2jax.js"],&#xa;</xsl:text>
         <xsl:text>    TeX: {&#xa;</xsl:text>
-        <xsl:text>        extensions: ["extpfeil.js", "autobold.js", "https://pretextbook.org/js/lib/mathjaxknowl.js", ],&#xa;</xsl:text>
+        <xsl:text>        extensions: ["extpfeil.js", "autobold.js", "https://pretextbook.org/js/lib/mathjaxknowl.js", "AMScd.js", ],&#xa;</xsl:text>
         <xsl:text>        // scrolling to fragment identifiers is controlled by other Javascript&#xa;</xsl:text>
         <xsl:text>        positionToHash: false,&#xa;</xsl:text>
         <xsl:text>        equationNumbers: { autoNumber: "none", useLabelIds: true, },&#xa;</xsl:text>
@@ -10404,9 +10912,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- Program Listings from Google -->
 <!--   ?skin=sunburst  on end of src URL gives black terminal look -->
-<xsl:template name="goggle-code-prettifier">
+<xsl:template name="google-code-prettifier">
     <xsl:if test="$b-has-program">
-        <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
     </xsl:if>
 </xsl:template>
 
@@ -10747,7 +11255,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- 2018-07-04: some day remove all this code  -->
 
 <xsl:template match="solution-list">
-    <xsl:apply-templates select="//exercises" mode="obsolete-backmatter" />
+    <xsl:apply-templates select="$document-root//exercises" mode="obsolete-backmatter" />
 </xsl:template>
 
 <!-- This is a hack that should go away when backmatter exercises are rethought -->

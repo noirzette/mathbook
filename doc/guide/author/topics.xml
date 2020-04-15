@@ -245,7 +245,7 @@
         <subsection xml:id="topic-character-elements">
             <title>Characters in Paragraphs</title>
 
-            <!-- Unambiguous:  ~, !, @, #, $, %, ^, (, ), _, [, ], {, }, \, |, :, ;, and , -->
+            <!-- Unambiguous:  ~, !, @, #, $, %, ^, (, ), _, =, +, [, ], {, }, \, |, :, ;, and , -->
             <!-- Exceptional:  <, & -->
 
             <!-- fragment names, and their elements, from schema source
@@ -259,7 +259,7 @@
                                   copyright, registered, trademark
             generator:            today, timeofday, tex, latex, pretext, webwork, 
                                   eg, ie, circa, etc
-            arithmetic-character: solidus, times
+            arithmetic-character: minus, solidus, times, obelus, plusminus
             siunit:               (deferred to its own section)
             music-character:      (deferred to its own section)
             -->
@@ -271,7 +271,7 @@
             <subsubsection>
                 <title>Unambiguous Keyboard Characters</title>
 
-                <p>The keyboard characters `, ~, !, @, #, $, %, ^, *, (, ), _, [, ], {, }, \, |, :, ;, and , are entered as-is and are only rendered one way.  Easy.</p>
+                <p>The keyboard characters `, ~, !, @, #, $, %, ^, *, (, ), _, =, +, [, ], {, }, \, |, :, ;, and , are entered as-is and are only rendered one way.  Easy.</p>
 
                 <p>Of course, the fifty-two Latin letters, and ten decimal digits, are also in this category.  If you have an international, or bilingual, or country-specific keyboard, then common accented versions of Latin letters (as used in Europe and the Western Hemisphere) may also be used directly from your keyboard.</p>
             </subsubsection>
@@ -525,6 +525,17 @@
 
                 <p>If you are writing about technical subjects, then you will want to avail yourself of <pretext/>'s extensive support for mathematics.  Otherwise, you may wish to write <em>really simple</em> arithmetic within sentences without extra formatting.  Notice that there is no provision for preventing line-breaks in the midst of these expressions.</p>
 
+                <p>So you can author (2<times/>6)<obelus/>3+10<minus/>15 = -1, but that is about the limit of the complexity of expressions you should author without using the extensive capabilities designed for <em>mathematics</em>, rather than <em>arithmetic</em>.  Note that the spaces around the equal sign have been supplied in the source, but no spaces have been provided around the operators.  Also, the minus sign and the negative are slightly different because the subtraction uses the <tage>minus</tage> element, while the negative answer uses a plain keyboard hyphen/dash.</p>
+
+                <p>Using the <tag>m</tag> element instead, the above is <m>(2\times 6)\div 3+10-15=-1</m>.  Note the more careful spacing, and the appropriate symbols for subtraction and negation, with no special care in the <latex/> syntax used in the source.</p>
+
+                <p>Note also that the plus sign, <c>+</c> and the equals sign, <c>=</c>, can be provided in text as the unambiguous keyboard characters.</p>
+
+                <paragraphs>
+                    <title><tage>minus</tage>, <minus/>, minus, subtraction, negation</title>
+                    <p>For simple arithmetic expressions in text, this symbol may be used.  Note that the keyboard hyhpen (or dash) might be acceptable for your purposes, but they are different.</p>
+                </paragraphs>
+
                 <paragraphs>
                     <title><tage>times</tage>, <times />, times, multiplication</title>
                     <p>For simple arithmetic expressions in text, this symbol may be used.  Or it may be used to specify dimensions, as in <q>I bought a 2<times />4 at the lumber yard.</q></p>
@@ -535,7 +546,16 @@
                     <p>For simple arithmetic expressions in text, this symbol may be used to form a fraction.  It should appear to have a significantly shallower slope than the forward slash, /.</p>
                 </paragraphs>
 
-                <p>So we have <tage>times</tage> and <tage>solidus</tage> and will implement &#xb1; and &#xf7; and then provide examples.</p>
+                <paragraphs>
+                    <title><tage>obelus</tage>, <obelus/>, obelus, division sign</title>
+                    <p>For simple arithmetic expressions in text, this symbol may be used to indicate division.</p>
+                </paragraphs>
+
+                <paragraphs>
+                    <title><tage>plusminus</tage>, <plusminus/>, plus-minus sign</title>
+                    <p>For simple arithmetic expressions in text, this symbol may be used to indicate a tolerance or a choice of two values, one the negative of the other.</p>
+                </paragraphs>
+
                 <!-- 
                 http://gcp.fcaglp.unlp.edu.ar/_media/integrantes:psantamaria:latex:textcomp.pdf
                 + regular
@@ -544,7 +564,7 @@
                 <times/>  \texttimes
                 <solidus/> \textfractionsolidus
                 <division/> F7 \textdiv 
-                <plusminus/>
+                <plusminus/> b1 \textpm
                 -->
             </subsubsection>
 
@@ -914,16 +934,23 @@
                         <cell><c>title</c></cell>
                         <cell><xref ref="overview-title"     text="title" /></cell>
                         <cell><xref ref="topic-divisions" text="title" /></cell>
-                        <cell><xref ref="topic-divisions" text="title">Extra</xref></cell>
+                        <cell>Warning</cell>
+                    </row>
+
+                    <row>
+                        <cell><c>custom</c></cell>
+                        <cell></cell>
+                        <cell></cell>
+                        <cell><xref ref="topic-divisions" text="custom">Extra</xref></cell>
                     </row>
                 </tabular>
             </table>
 
-            <p>Note that <c>local/global</c> describes the uniqueness of the number (and is affected by your choice of numbering schemes), while <c>type</c> refers to an automatic prefix of the number.  The text of the type will vary according to the document's language. If a cross-reference and its target are close to each other, a number like 5.8.2.4 might be overkill, when just a 4 would suffice.  A <c>hybrid</c> scheme will use the shorter number whenever it makes sense.  Finally, there are two <c>phrase</c> schemes, and it should be clear what text <c>title</c> will produce (though realize there must be a title for the object, possibly a default provided by <pretext />).</p>
+            <p>Note that <c>local/global</c> describes the uniqueness of the number (and is affected by your choice of numbering schemes), while <c>type</c> refers to an automatic prefix of the number.  The text of the type will vary according to the document's language. If a cross-reference and its target are close to each other, a number like 5.8.2.4 might be overkill, when just a 4 would suffice.  A <c>hybrid</c> scheme will use the shorter number whenever it makes sense.  There are two <c>phrase</c> schemes, and it should be clear what text <c>title</c> will produce (though realize there must be a title for the object, possibly a default provided by <pretext />).  Finally, if desired, the text can be customized with any text you like.</p>
 
-            <p>You can also override the text used in a cross-reference link.  You do this by providing content to the <tag>xref</tag> element.  In other words, do not use an empty tag, but put some (simple) text in the element.  Generally, this additional text becomes a prefix of a number, a replacement of a type, or a replacement of a title.  It is better to use these overrides, since in electronic formats, the text of the override will be incorporated into the <q>clickable</q> portion of the resulting link, making a larger item to hit.</p>
+            <p>You can also override the text used in a cross-reference link.  You do this by providing content to the <tag>xref</tag> element.  In other words, do not use an empty tag, but put some (simple) text in the element.  Generally, this additional text becomes a prefix of a number or a replacement of a type.  It is better to use these overrides, since in electronic formats, the text of the override will be incorporated into the <q>clickable</q> portion of the resulting link, making a larger item to hit.  Recognize that this extra content will not benefit from automatic internationalization.</p>
 
-            <p>Here are careful examples, where we have provided the content <q>Division</q> in the live examples.  The list is not exhaustive.  Note that overriding a title provides a way to provide any text you would like.</p>
+            <p>Here are careful examples of providing content inside the <tag>xref</tag> element, where we have provided the content <q>Division</q> in the live examples.  The list is not exhaustive.</p>
 
             <!-- expand and add links to the Preface to demo default titles -->
             <table xml:id="txo">
@@ -942,8 +969,8 @@
                         <cell><xref ref="topic-cross-referencing" text="type-global">Division</xref></cell>
                     </row>
                     <row>
-                        <cell><c>'title'</c></cell>
-                        <cell><xref ref="topic-cross-referencing" text="title">Division</xref></cell>
+                        <cell><c>'custom'</c></cell>
+                        <cell><xref ref="topic-cross-referencing" text="custom">Division</xref></cell>
                     </row>
                 </tabular>
             </table>
@@ -1073,7 +1100,14 @@
                         <cell><c>title</c></cell>
                         <cell><xref ref="named-list-target"  text="title" /></cell>
                         <cell><xref ref="anon-list-target" text="title" /></cell>
-                        <cell><xref ref="named-list-target" text="title">Extra</xref></cell>
+                        <cell>Warning</cell>
+                    </row>
+
+                    <row>
+                        <cell><c>custom</c></cell>
+                        <cell></cell>
+                        <cell></cell>
+                        <cell><xref ref="named-list-target" text="custom">Extra</xref></cell>
                     </row>
                 </tabular>
             </table>
@@ -1097,7 +1131,7 @@
             <note>
                 <title>Be Rational About Numbering Variations</title>
 
-                <p>With distinct numbering schemes for divisions, theorems, figures, equations, and citations, along with nine different text styles for a cross-reference, plus variants, per-cross-reference settings, and text overrides, there is a huge supply of combinations.  Likely you can create some really ugly cross-references.  Use the flexibility sensibly.</p>
+                <p>With distinct numbering schemes for divisions, theorems, figures, equations, and citations, along with ten different text styles for a cross-reference, plus variants, per-cross-reference settings, and text overrides, there is a huge supply of combinations.  Likely you can create some really ugly cross-references.  Use the flexibility sensibly.</p>
             </note>
         </conclusion>
     </section>
@@ -1205,6 +1239,14 @@
             <p>For multi-line display mathematics with no ampersands present, each line will be centered.  This is implemented with the AMS-<latex /> <c>gather</c> environment.</p>
 
             <p>You can fool the alignment behavior by hiding all your ampersands in macro definitions, so there is the optional <attr>alignment</attr> attribute for the <tag>md</tag> or <tag>mdn</tag> element, in order to force the right kind of alignment.  Allowable values are <c>gather</c>, <c>align</c>, and <c>alignat</c>.  The latter is similar to <c>align</c>, but no space is automatically provided between columns.  You can leave it that way, or explicitly add your own.  For example, this allows you to precisely arrange individual terms of a system of linear equations, especially when terms with zero coefficients are omitted.  When using the <c>alignat</c> option <pretext /> tries to count ampersands to see how many columns you intend, since <latex /> needs this number (we are not sure why).  This detection can be fooled too, especially if you have something like a matrix with lots of ampersands for other purposes.  So set the <attr>alignat-columns</attr> attribute to the <em>number of intended columns</em>, if necessary.</p>
+        </subsection>
+
+        <subsection xml:id="commutative-diagrams">
+            <title>Commutative Diagrams</title>
+
+            <p>Commutative diagrams may be authored using the <init>AMS</init> <latex/> <c>amscd</c> package<fn><url href="https://ctan.org/pkg/amscd"><c>ctan.org/pkg/amscd</c></url></fn>.  While restricted in some ways, such as the lack of sloped or curved arrows, it has one important advantage over more general drawing tools.  Support for <init>HTML</init> output comes from MathJax, and hence has accessible versions included in the output.</p>
+
+            <p>Typical use would be within an <tag>me</tag> element, so starting with <c>\begin{CD}</c>.  Despite this being multi-line output, we have not chosen to integrate it within the more general <c>md/mrow</c> structure, but that decision can be revisited.</p>
         </subsection>
 
         <subsection>
@@ -1421,7 +1463,10 @@
                             <ol label="I">
                                 <li xml:id="walleye">Walleye</li>
                                 <li>Bass</li>
-                                <li xml:id="anon-list-target">Trout</li>
+                                <li xml:id="anon-list-target">
+                                    <title>Exquisite Fish</title>
+                                    <p>Trout</p>
+                                </li>
                             </ol>
                         </p>
                     </li>
@@ -1475,7 +1520,10 @@
                                 <ol label="(a)">
                                     <li>B and a</li>
                                     <li>B and b</li>
-                                    <li xml:id="named-list-target">B and c</li>
+                                    <li xml:id="named-list-target">
+                                        <title>A Test Title</title>
+                                        <p>B and c</p>
+                                    </li>
                                 </ol>
                             </p>
                         </li>
@@ -1777,6 +1825,18 @@
         <p></p>
     </section>
 
+    <section xml:id="topic-sage">
+        <title>Sage</title>
+
+        <p>Until we can expand this section, get some ideas from <xref ref="overview-sage"/>.  We will also collect a few items here, to be cleaned-up later.</p>
+
+        <p>For online output formats, sometimes the output of a Sage command can be overwhelming, and a bit complicated to parse.  Many objects in Sage also have a <latex/> representation, which can be used to create a superior output format (for some purposes).  Begin a cell with the <q>magic</q>:<cd>
+            <cline>%display latex</cline>
+        </cd>Experiment with the following Sage code on the next line<cd>
+            <cline>integral(x^9*cos(x), x)</cline>
+        </cd>Boom!  Very nice.  Try replacing <c>latex</c> with <c>None</c>, <c>plain</c>, <c>ascii_art</c>, or <c>unicode_art</c>.</p>
+    </section>
+
     <section xml:id="topic-sidebyside">
         <title>Side-by-Side Panels</title>
         <idx>side-by-side panel</idx>
@@ -1810,9 +1870,105 @@
         <p>It should be clear now that a <tag>sidebyside</tag> is more about presentation than most <pretext /> elements, though there is some semantic information being conveyed by grouping the panels with one another.</p>
     </section>
 
-    <section xml:id="topic-front-back-matter">
-        <title>(*) Front and Back Matter</title>
-        <p></p>
+    <section xml:id="topic-front-matter">
+        <title>(*) Front Matter</title>
+
+         <introduction>
+            <p></p>
+        </introduction>
+
+        <subsection>
+            <title>(*) Title Page</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Abstract</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Colophon</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Biography</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Dedication</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Acknowledgement</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Prefaces</title>
+
+            <p></p>
+        </subsection>
+
+    </section>
+
+    <section xml:id="topic-back-matter">
+        <title>(*) Back Matter</title>
+
+        <introduction>
+            <p></p>
+        </introduction>
+
+        <subsection>
+            <title>(*) Appendices</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Glossary</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) References</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Automatic Lists</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Solutions</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Index</title>
+
+            <p></p>
+        </subsection>
+
+        <subsection>
+            <title>(*) Colophon</title>
+
+            <p></p>
+        </subsection>
     </section>
 
     <section xml:id="topic-index">
@@ -2383,6 +2539,11 @@
 
                 <p>Here is a device which we now use more frequently.  Despite our aversion to footnotes, create a <tag>url</tag> element and provide meaningful content, such as the title of the web page you are referencing.  Then immediately afterwards add a footnote (<tag>fn</tag>) which contains only the actual <init>URL</init>, perhaps wrapped in a <tag>c</tag> element.  Since this is mostly meant for print, it is safe to drop things like the <c>https://</c> protocol specification and therefore <em>not</em> make it active (for a second time).  This is in use within this section.</p>
             </li>
+
+            <li>
+                <title>Commutative Diagrams</title>
+                <p>Whenever possible, author commutative diagrams using the syntax of the <c>amscd</c> <latex/> package.  Then online and braille output will be more accessible.  See <xref ref="commutative-diagrams"/> for more.</p>
+            </li>
         </dl></p>
 
         <p>Watching a blind reader navigate a web page can be a very enlightening experience.  Or you might even undertake learning one yourself.  Here are some suggestions for getting started (current on 2018-05-31).<ul>
@@ -2425,61 +2586,19 @@ Similar to articles, your content should be organized into several
           <li>
 And within each section, a <c>slide</c> represents a full screen of information.
 Within a slide, you may author <pretext/> content as usual, such as paragraphs
-(<c>p</c>), lists (<c>ul</c>), and so on. The <c>@slide-step="true"</c> attribute
-is supported on several elements to allow stepping through slides
-(e.g. it inserts a Beamer <c>\pause</c>).
+(<c>p</c>), lists (<c>ul</c>), and so on.
+          </li>
+          <li>
+Several elements support setting the <attr>pause</attr> attribute to the
+value <c>yes</c> to allow stepping through
+parts of a slide (e.g. it inserts a Beamer <c>\pause</c>).
           </li>
         </ul>
         <p>
-Following is a somewhat minimal working example.
+A minimal working example may be found in the
+<url href="https://github.com/rbeezer/mathbook/blob/dev/examples/sample-slideshow/sample-slideshow.xml">
+  Examples folder of the PreTeXt repo on GitHub
+</url><fn><c>examples/sample-slideshow/sample-slideshow.xml</c></fn>.
         </p>
-      <pre>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;pretext&gt;
-  &lt;slideshow&gt;
-    &lt;title&gt;Hello World!&lt;/title&gt;
-    &lt;subtitle&gt;Sample PreTeXt slides&lt;/subtitle&gt;
-    &lt;frontmatter&gt;
-      &lt;titlepage&gt;
-        &lt;author&gt;
-          &lt;personname&gt;Your Name&lt;/personname&gt;
-          &lt;affiliation&gt;Your School&lt;/affiliation&gt;
-          &lt;logo&gt;&lt;image source="path/to/your/image.png"/&gt;&lt;/logo&gt;
-        &lt;/author&gt;
-        &lt;event&gt;PreTeXt Workshop 20XX&lt;/event&gt;
-        &lt;date&gt;Month 20XX&lt;/date&gt;
-      &lt;/titlepage&gt;
-    &lt;/frontmatter&gt;
-    &lt;section&gt;
-      &lt;title&gt;Title of Section&lt;/title&gt;
-      &lt;slide&gt;
-        &lt;title&gt;PDX &lt;m&gt;\iff&lt;/m&gt; PTX&lt;/title&gt;
-        &lt;ul&gt;
-          &lt;li&gt;&lt;p&gt;One item&lt;/p&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;p&gt;Another item&lt;/p&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;p&gt;
-            A really long item which is really far too long to be an
-            item in a talk. Points should really be only a single line
-            unless they are really important.
-          &lt;/p&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/slide&gt;
-      &lt;slide&gt;
-        &lt;title&gt;A second slide here&lt;/title&gt;
-        &lt;p&gt;
-          Words and stuff
-        &lt;/p&gt;
-        &lt;p&gt;
-          &lt;ul slide-step="true"&gt;
-            &lt;li&gt;&lt;p&gt;First thing&lt;/p&gt;&lt;/li&gt;
-            &lt;li&gt;&lt;p&gt;Second thing&lt;/p&gt;&lt;/li&gt;
-            &lt;li&gt;&lt;p&gt;Third thing&lt;/p&gt;&lt;/li&gt;
-          &lt;/ul&gt;
-        &lt;/p&gt;
-      &lt;/slide&gt;
-    &lt;/section&gt;
-  &lt;/slideshow&gt;
-&lt;/pretext&gt;
-      </pre>
     </section>
 </chapter>

@@ -20,6 +20,12 @@
 <!-- along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.      -->
 <!-- ********************************************************************* -->
 
+<!-- http://pimpmyxslt.com/articles/entity-tricks-part2/ -->
+<!DOCTYPE xsl:stylesheet [
+    <!ENTITY % entities SYSTEM "entities.ent">
+    %entities;
+]>
+
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:xml="http://www.w3.org/XML/1998/namespace"
     xmlns:str="http://exslt.org/strings"
@@ -37,7 +43,7 @@
 <!-- exclusively on "webwork" elements, since these templates are only     -->
 <!-- designed for producing PGML from "webwork" and there is no defense    -->
 <!-- against the templates being applied elsewhere.  So a stylesheet which -->
-<!-- includes this can (and typically should) import  mathbook-common.xsl  -->
+<!-- includes this can (and typically should) import  pretext-common.xsl  -->
 <!-- for universal templates, but should not be simultaneously converting  -->
 <!-- to some other output format.                                          -->
 <!--                                                                       -->
@@ -117,13 +123,23 @@
     <xsl:param name="b-hint" select="true()" />
     <xsl:param name="b-solution" select="true()" />
     <xsl:param name="b-verbose" />
-    <xsl:call-template   name="begin-problem">
-        <xsl:with-param name="b-verbose" select="$b-verbose" />
-    </xsl:call-template>
+    <xsl:if test="$b-verbose">
+        <xsl:call-template name="converter-blurb-webwork" />
+        <xsl:call-template name="webwork-metadata" />
+    </xsl:if>
+    <xsl:text>DOCUMENT();&#xa;</xsl:text>
     <xsl:apply-templates select="." mode="pg-macros">
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:apply-templates>
-    <xsl:call-template   name="pg-header">
+    <xsl:if test="$b-verbose">
+        <xsl:text>COMMENT('</xsl:text>
+        <xsl:call-template name="type-name">
+            <xsl:with-param name="string-id" select="'authored'" />
+        </xsl:call-template>
+        <xsl:text>');&#xa;</xsl:text>
+        <xsl:apply-templates select="description"/>
+    </xsl:if>
+    <xsl:call-template name="pg-header">
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:call-template>
     <xsl:apply-templates select="." mode="pg-code">
@@ -142,7 +158,7 @@
             <xsl:with-param name="b-verbose" select="$b-verbose" />
         </xsl:apply-templates>
     </xsl:if>
-    <xsl:call-template   name="end-problem">
+    <xsl:call-template name="end-problem">
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:call-template>
 </xsl:template>
@@ -152,24 +168,32 @@
     <xsl:param name="b-hint" select="true()" />
     <xsl:param name="b-solution" select="true()" />
     <xsl:param name="b-verbose" />
-    <xsl:call-template   name="begin-problem" >
-        <xsl:with-param name="b-verbose" select="$b-verbose" />
-    </xsl:call-template>
+    <xsl:if test="$b-verbose">
+        <xsl:call-template name="converter-blurb-webwork" />
+        <xsl:call-template name="webwork-metadata" />
+    </xsl:if>
+    <xsl:text>DOCUMENT();&#xa;</xsl:text>
     <xsl:apply-templates select="." mode="pg-macros">
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:apply-templates>
-    <xsl:call-template   name="pg-header">
+    <xsl:if test="$b-verbose">
+        <xsl:text>COMMENT('</xsl:text>
+        <xsl:call-template name="type-name">
+            <xsl:with-param name="string-id" select="'authored'" />
+        </xsl:call-template>
+        <xsl:text>');&#xa;</xsl:text>
+        <xsl:text>COMMENT('This problem is scaffolded with multiple parts');&#xa;</xsl:text>
+        <xsl:apply-templates select="description"/>
+    </xsl:if>
+    <xsl:call-template name="pg-header">
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:call-template>
-    <xsl:if test="$b-verbose">
-        <xsl:text>COMMENT('This problem is scaffolded with multiple parts');&#xa;</xsl:text>
-    </xsl:if>
     <xsl:apply-templates select="." mode="pg-code" >
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:apply-templates>
-    <xsl:call-template   name="begin-block">
-        <xsl:with-param  name="block-title">Scaffold</xsl:with-param>
-        <xsl:with-param  name="b-verbose" select="$b-verbose" />
+    <xsl:call-template name="begin-block">
+        <xsl:with-param name="block-title">Scaffold</xsl:with-param>
+        <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:call-template>
     <xsl:text>Scaffold::Begin();</xsl:text>
     <xsl:if test="$b-verbose">
@@ -187,7 +211,7 @@
     <xsl:if test="$b-verbose">
         <xsl:text>&#xa;</xsl:text>
     </xsl:if>
-    <xsl:call-template   name="end-problem">
+    <xsl:call-template name="end-problem">
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:call-template>
 </xsl:template>
@@ -259,6 +283,11 @@
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:call-template>
     <xsl:text>&#xa;BEGIN_PGML&#xa;</xsl:text>
+    <xsl:if test="$b-verbose">
+        <xsl:apply-templates select="ancestor::exercisegroup/introduction">
+            <xsl:with-param name="b-verbose" select="$b-verbose"/>
+        </xsl:apply-templates>
+    </xsl:if>
     <xsl:apply-templates>
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:apply-templates>
@@ -294,19 +323,57 @@
     <xsl:text>&#xa;END_PGML_HINT&#xa;</xsl:text>
 </xsl:template>
 
+<xsl:template match="exercisegroup/introduction">
+    <xsl:param name="b-verbose" />
+    <xsl:apply-templates>
+        <xsl:with-param name="b-verbose" select="$b-verbose"/>
+    </xsl:apply-templates>
+</xsl:template>
+
+<xsl:template match="webwork/description">
+    <xsl:text>COMMENT(</xsl:text>
+    <xsl:choose>
+        <xsl:when test="line">
+            <xsl:for-each select="line">
+                <xsl:apply-templates select="." mode="delimit"/>
+                <xsl:if test="not(position()=last())">
+                    <xsl:text>, </xsl:text>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:apply-templates select="." mode="delimit"/>
+        </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>);&#xa;</xsl:text>
+</xsl:template>
+
+<xsl:template match="*" mode="delimit">
+    <xsl:variable name="delimiter">
+        <xsl:call-template name="find-unused-character">
+            <xsl:with-param name="string" select="."/>
+            <!-- https://stackoverflow.com/questions/43617820/what-are-the-legal-delimiters-for-perl-5s-pick-your-own-quotes-operators      -->
+            <!-- NB: don't use [{(]}), becuase as perl delimiters, closer is allowed to be left/right version; too complicated to check for -->
+            <xsl:with-param name="charset" select="concat($apos,'&quot;|/\?:;.,=+-_~`!@$%^&amp;*',&SIMPLECHAR;)"/>
+        </xsl:call-template>
+    </xsl:variable>
+    <!-- If the delimiter is not a single quote, use q operator -->
+    <xsl:if test="$delimiter != $apos">
+        <xsl:text>q</xsl:text>
+    </xsl:if>
+    <!-- If the delimiter is alphanumeric, must be preceded by a space -->
+    <xsl:if test="translate($delimiter,&SIMPLECHAR;,'') = ''">
+        <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:value-of select="$delimiter"/>
+    <xsl:apply-templates />
+    <xsl:value-of select="$delimiter"/>
+</xsl:template>
+
+
 <!-- ############################## -->
 <!-- Problem Header/Initializations -->
 <!-- ############################## -->
-
-<!-- Includes file header blurb promoting PTX -->
-<xsl:template name="begin-problem">
-    <xsl:param name="b-verbose" />
-    <xsl:if test="$b-verbose">
-        <xsl:call-template name="converter-blurb-webwork" />
-        <xsl:call-template name="webwork-metadata" />
-    </xsl:if>
-    <xsl:text>DOCUMENT();&#xa;</xsl:text>
-</xsl:template>
 
 <!-- Mine various parts of the surrounding text -->
 <!-- Only ever called in verbose mode           -->
@@ -366,13 +433,6 @@
         <xsl:with-param name="block-title">Header</xsl:with-param>
         <xsl:with-param name="b-verbose" select="$b-verbose" />
     </xsl:call-template>
-    <xsl:if test="$b-verbose">
-        <xsl:text>COMMENT('</xsl:text>
-        <xsl:call-template name="type-name">
-            <xsl:with-param name="string-id" select="'authored'" />
-        </xsl:call-template>
-        <xsl:text> PreTeXt');&#xa;</xsl:text>
-    </xsl:if>
     <xsl:text>TEXT(beginproblem());</xsl:text>
     <xsl:if test="not($b-verbose)">
         <!-- see select-latex-macros template -->
@@ -426,18 +486,18 @@
 
     <!-- three standard macros always, order and placement is critical -->
     <xsl:variable name="standard-macros">
-        <xsl:choose>
-            <xsl:when test="$b-verbose">
-                <xsl:text>  "PGstandard.pl",&#xa;</xsl:text>
-                <xsl:text>  "MathObjects.pl",&#xa;</xsl:text>
-                <xsl:text>  "PGML.pl",&#xa;</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:text>"PGstandard.pl",</xsl:text>
-                <xsl:text>"MathObjects.pl",</xsl:text>
-                <xsl:text>"PGML.pl",</xsl:text>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:call-template name="macro-padding">
+            <xsl:with-param name="string" select="'PGstandard.pl'"/>
+            <xsl:with-param name="b-verbose" select="$b-verbose"/>
+        </xsl:call-template>
+        <xsl:call-template name="macro-padding">
+            <xsl:with-param name="string" select="'MathObjects.pl'"/>
+            <xsl:with-param name="b-verbose" select="$b-verbose"/>
+        </xsl:call-template>
+        <xsl:call-template name="macro-padding">
+            <xsl:with-param name="string" select="'PGML.pl'"/>
+            <xsl:with-param name="b-verbose" select="$b-verbose"/>
+        </xsl:call-template>
     </xsl:variable>
 
     <!-- accumulate macros evidenced by some aspect of problem design      -->
@@ -448,103 +508,67 @@
     <xsl:variable name="implied-macros">
         <!-- tables -->
         <xsl:if test=".//tabular">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "niceTables.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"niceTables.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'niceTables.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- bizarro arithmetic technique for assesing answer form -->
         <xsl:if test="contains(.//pg-code,'bizarro')">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "bizarroArithmetic.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"bizarroArithmetic.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'bizarroArithmetic.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- multistage problems ("scaffolded") -->
         <xsl:if test=".//stage">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "scaffold.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"scaffold.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'scaffold.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- links to syntax help following answer blanks -->
         <xsl:if test="$pg.answer.form.help = 'yes'">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "AnswerFormatHelp.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"AnswerFormatHelp.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'AnswerFormatHelp.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- targeted feedback messages for specific wrong answers -->
         <xsl:if test="contains(.//pg-code,'AnswerHints')">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "answerHints.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"answerHints.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'answerHints.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- checkboxes multiple choice answers or the very useful NchooseK function-->
         <xsl:if test=".//var[@form='checkboxes'] or contains(.//pg-code,'NchooseK')">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "PGchoicemacros.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"PGchoicemacros.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'PGchoicemacros.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- essay answers -->
-        <xsl:if test=".//var[@form='essay']">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "PGessaymacros.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"PGessaymacros.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+        <xsl:if test=".//var[@form='essay'] or contains(.//pg-code,'explanation_box')">
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'PGessaymacros.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- when there is a PGgraphmacros graph -->
         <xsl:if test=".//image[@pg-name]">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "PGgraphmacros.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"PGgraphmacros.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'PGgraphmacros.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- instructions for entering answers into HTML forms -->
         <!-- utility for randomly generating variable letters -->
         <xsl:if test=".//instruction or contains(.//pg-code,'RandomVariableName')">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "PCCmacros.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"PCCmacros.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'PCCmacros.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- ################### -->
         <!-- Parser Enhancements -->
@@ -583,14 +607,10 @@
         <!-- allow "f(x)" as part of answers -->
         <!-- note unusual usage precludes using parser modal template here -->
         <xsl:if test="contains(.//pg-code,'parserFunction')">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "parserFunction.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"parserFunction.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'parserFunction.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- allow "f'(x)" as part of answers -->
         <xsl:apply-templates select="." mode="parser">
@@ -645,14 +665,10 @@
         <!-- allow "'" as part of answers, as an effective derivative operator -->
         <!-- note unusual usage precludes using parser modal template here -->
         <xsl:if test="contains(.//pg-code,'parser::Prime')">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "parserPrime.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"parserPrime.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'parserPrime.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- parserQuotedString.pl is part of pg distribution, but not documented what it does -->
         <xsl:apply-templates select="." mode="parser">
@@ -667,14 +683,10 @@
         <!-- allow a root(n,x) function -->
         <!-- note unusual usage precludes using parser modal template here -->
         <xsl:if test="contains(.//pg-code,'parser::Root')">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "parserRoot.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"parserRoot.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'parserRoot.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- check if a number/point satisfies an implicit equation -->
         <xsl:apply-templates select="." mode="parser">
@@ -684,14 +696,10 @@
         <!-- Some utility routines that are useful in vector problems -->
         <!-- note unusual usage precludes using parser modal template here -->
         <xsl:if test="contains(.//pg-code,'Overline') or contains(.//pg-code,'BoldMath' or contains(.//pg-code,'non_zero_point') or contains(.//pg-code,'non_zero_vector'))">
-            <xsl:choose>
-                <xsl:when test="$b-verbose">
-                    <xsl:text>  "parserVectorUtils.pl",&#xa;</xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>"parserVectorUtils.pl",</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'parserVectorUtils.pl'"/>
+                <xsl:with-param name="b-verbose" select="$b-verbose"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- Provides free response, fill in the blank questions with interactive help -->
         <xsl:apply-templates select="." mode="parser">
@@ -880,7 +888,7 @@
                 <xsl:text>"</xsl:text>
             </xsl:variable>
             <xsl:choose>
-                <xsl:when test="contains($standard-macros, $fenced-macro)">
+                <xsl:when test="contains($standard-macros, $fenced-macro) or ($fenced-macro = '&quot;PGcourse.pl&quot;')">
                     <xsl:message>PTX:WARNING: the WeBWorK PG macro <xsl:value-of select="."/> is always included for every problem</xsl:message>
                     <xsl:apply-templates select="." mode="location-report" />
                 </xsl:when>
@@ -889,39 +897,20 @@
                     <xsl:apply-templates select="." mode="location-report" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:if test="$b-verbose">
-                        <xsl:text>  </xsl:text>
-                    </xsl:if>
-                    <xsl:value-of select="$fenced-macro" />
-                    <xsl:text>,</xsl:text>
-                    <xsl:if test="$b-verbose">
-                        <xsl:text>&#xa;</xsl:text>
-                    </xsl:if>
+                    <xsl:call-template name="macro-padding">
+                        <xsl:with-param name="string" select="."/>
+                        <xsl:with-param name="b-verbose" select="$b-verbose"/>
+                    </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
     </xsl:variable>
     <!-- always finish with PG course macro -->
     <xsl:variable name="course-macro">
-        <xsl:variable name="fenced-macro">
-            <xsl:text>"PGcourse.pl"</xsl:text>
-        </xsl:variable>
-        <xsl:choose>
-            <xsl:when test="contains($standard-macros, $fenced-macro)">
-                <xsl:message>PTX:WARNING: the WeBWorK PG macro PGcourse.pl is always included for every problem</xsl:message>
-                <xsl:apply-templates select="." mode="location-report" />
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:if test="$b-verbose">
-                    <xsl:text>  </xsl:text>
-                </xsl:if>
-                <xsl:value-of select="$fenced-macro" />
-                <xsl:text>,</xsl:text>
-                <xsl:if test="$b-verbose">
-                    <xsl:text>&#xa;</xsl:text>
-                </xsl:if>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:call-template name="macro-padding">
+            <xsl:with-param name="string" select="'PGcourse.pl'"/>
+            <xsl:with-param name="b-verbose" select="$b-verbose"/>
+        </xsl:call-template>
     </xsl:variable>
     <!-- put them together with a wrapper -->
     <xsl:variable name="load-macros">
@@ -940,8 +929,8 @@
     </xsl:variable>
     <xsl:value-of select="$load-macros" />
     <!-- if images are used, explicitly refresh or stale images will be used in HTML -->
-    <xsl:if test=".//image[@pg-name]">
-        <xsl:text>$refreshCachedImages= 1;</xsl:text>
+    <xsl:if test=".//image[@pg-name] and not($b-verbose)">
+        <xsl:text>$refreshCachedImages=1;</xsl:text>
     </xsl:if>
 </xsl:template>
 
@@ -949,15 +938,10 @@
     <xsl:param name="context"/>
     <xsl:param name="b-verbose"/>
     <xsl:if test="contains(.//pg-code,$context)">
-        <xsl:if test="$b-verbose">
-            <xsl:text>  </xsl:text>
-        </xsl:if>
-        <xsl:text>"context</xsl:text>
-        <xsl:value-of select="$context"/>
-        <xsl:text>.pl",</xsl:text>
-        <xsl:if test="$b-verbose">
-            <xsl:text>&#xa;</xsl:text>
-        </xsl:if>
+        <xsl:call-template name="macro-padding">
+            <xsl:with-param name="string" select="concat('context',$context,'.pl')"/>
+            <xsl:with-param name="b-verbose" select="$b-verbose"/>
+        </xsl:call-template>
     </xsl:if>
 </xsl:template>
 
@@ -965,15 +949,24 @@
     <xsl:param name="parser"/>
     <xsl:param name="b-verbose"/>
     <xsl:if test="contains(.//pg-code,$parser)">
-        <xsl:if test="$b-verbose">
-            <xsl:text>  </xsl:text>
-        </xsl:if>
-        <xsl:text>"parser</xsl:text>
-        <xsl:value-of select="$parser"/>
-        <xsl:text>.pl",</xsl:text>
-        <xsl:if test="$b-verbose">
-            <xsl:text>&#xa;</xsl:text>
-        </xsl:if>
+        <xsl:call-template name="macro-padding">
+            <xsl:with-param name="string" select="concat('parser',$parser,'.pl')"/>
+            <xsl:with-param name="b-verbose" select="$b-verbose"/>
+        </xsl:call-template>
+    </xsl:if>
+</xsl:template>
+
+<xsl:template name="macro-padding">
+    <xsl:param name="string"/>
+    <xsl:param name="b-verbose"/>
+    <xsl:if test="$b-verbose">
+        <xsl:text>  </xsl:text>
+    </xsl:if>
+    <xsl:text>"</xsl:text>
+    <xsl:value-of select="$string"/>
+    <xsl:text>",</xsl:text>
+    <xsl:if test="$b-verbose">
+        <xsl:text>&#xa;</xsl:text>
     </xsl:if>
 </xsl:template>
 
@@ -1078,7 +1071,7 @@
 <!-- http://webwork.maa.org/moodle/mod/forum/discuss.php?d=3370 -->
 <xsl:template match="var[@form='essay']" mode="field">
     <xsl:param name="b-verbose" />
-    <xsl:text>[@ANS(essay_cmp);</xsl:text>
+    <xsl:text>[@ANS(essay_cmp());</xsl:text>
     <!-- NECESSARY? -->
     <xsl:if test="$b-verbose">
         <xsl:text> </xsl:text>
@@ -1230,9 +1223,9 @@
     <xsl:if test="preceding-sibling::p|preceding-sibling::sidebyside and not(child::*[1][self::ol] or child::*[1][self::ul])">
         <xsl:call-template name="potential-list-indent" />
     </xsl:if>
-    <xsl:text>[@KeyboardInstructions(q?</xsl:text>
-    <xsl:apply-templates />
-    <xsl:text>?)@]**</xsl:text>
+    <xsl:text>[@KeyboardInstructions(</xsl:text>
+    <xsl:apply-templates select="." mode="delimit"/>
+    <xsl:text>)@]**</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
 </xsl:template>
@@ -1245,7 +1238,7 @@
 <!-- are explicitly used, so if they are nested, then "inner" macros will -->
 <!-- be missed. So authors should not use nested macro definitions.       -->
 <!-- Macros are jammed together, but maybe need protection, like {}. The  -->
-<!-- $latex-macros sanitized list assumes  mathbook-common.xsl is used.   -->
+<!-- $latex-macros sanitized list assumes  pretext-common.xsl is used.   -->
 <!-- TODO: This named template examines the current context (see '.' in   -->
 <!-- contains() below), so should be a match template. But its recursive  -->
 <!-- implementation makes it a named template for now.                    -->
@@ -1268,7 +1261,7 @@
 <!-- are explicitly used, so if they are nested, then "inner" macros will -->
 <!-- be missed. So authors should not use nested macro definitions.       -->
 <!-- Macros are jammed together, but maybe need protection, like {}. The  -->
-<!-- $latex-macros sanitized list assumes  mathbook-common.xsl is used.   -->
+<!-- $latex-macros sanitized list assumes  pretext-common.xsl is used.   -->
 <!-- TODO: This named template examines the current context (see '.' in   -->
 <!-- contains() below), so should be a match template. But its recursive  -->
 <!-- implementation makes it a named template for now.                    -->
@@ -1361,8 +1354,8 @@
 
 <!-- The cross-reference numbering scheme uses \ref, \hyperref -->
 <!-- for LaTeX and numbers elsewhere, so it is unimplmented in -->
-<!-- mathbook-common.xsl, hence we implement it here           -->
-<!-- This is identical to mathbook-html.xsl                    -->
+<!-- pretext-common.xsl, hence we implement it here           -->
+<!-- This is identical to pretext-html.xsl                    -->
 
 <xsl:template match="*" mode="xref-number">
     <xsl:apply-templates select="." mode="number" />
@@ -1392,13 +1385,13 @@
 <!-- NB: we allow the "var" element as a child                             -->
 
 <!-- Common documentation -->
-<!-- Note: the default template for "text()" in xsl/mathbook-common.xsl    -->
-<!-- will drop "clause-ending" punctuation that immediately follows a bit  -->
-<!-- of math, and possibly remove some resulting leading whitespace. For   -->
-<!-- inline math "m" this behavior is under the control of the global      -->
-<!-- $latex-processing variable, which is only overridden for LaTeX        -->
-<!-- processing itself. Then the math templates need to look forward and   -->
-<!-- recover this punctuation with a \text{} wrapper.                      -->
+<!-- See the -common stylesheet for manipulations of math elements     -->
+<!-- and subsequent text nodes that lead with punctuation.  Basically, -->
+<!-- punctuation can migrate from the start of the text node and into  -->
+<!-- the math, wrapped in a \text{}.  We do this to display math as a  -->
+<!-- service to authors.  But LaTeX handles this situation carefully   -->
+<!-- for inline math, so we do the same here.                          -->
+<xsl:variable name="math.punctuation.include" select="'all'"/>
 
 <xsl:template match="m">
     <xsl:param name="b-verbose" />
@@ -1434,37 +1427,92 @@
 
 <xsl:template match="md">
     <xsl:param name="b-verbose" />
-    <xsl:text>&#xa;&#xa;</xsl:text>
+    <xsl:apply-templates select="." mode="body">
+        <xsl:with-param name="b-verbose" select="$b-verbose"/>
+    </xsl:apply-templates>
+</xsl:template>
+
+<xsl:template match="md" mode="body">
+    <xsl:param name="b-verbose"/>
+    <xsl:variable name="complete-latex">
+        <xsl:if test="$b-verbose">
+            <xsl:text>&#xa;</xsl:text>
+            <xsl:if test="ancestor::ul|ancestor::ol">
+                <xsl:call-template name="potential-list-indent" />
+            </xsl:if>
+        </xsl:if>
+        <xsl:text>\begin{</xsl:text>
+        <xsl:apply-templates select="." mode="displaymath-alignment"/>
+        <xsl:text>}</xsl:text>
+        <xsl:apply-templates select="." mode="alignat-columns" />
+        <xsl:text>&#xa;</xsl:text>
+        <!-- Indentation of mrow/intertext is in each one's template   -->
+        <xsl:apply-templates select="mrow|intertext"/>
         <xsl:if test="ancestor::ul|ancestor::ol">
             <xsl:call-template name="potential-list-indent" />
         </xsl:if>
+        <xsl:text>\end{</xsl:text>
+        <xsl:apply-templates select="." mode="displaymath-alignment"/>
+        <xsl:text>}</xsl:text>
+        <xsl:text>&#xa;</xsl:text>
+    </xsl:variable>
+    <xsl:apply-templates select="." mode="display-math-wrapper">
+        <xsl:with-param name="b-verbose" select="$b-verbose" />
+        <xsl:with-param name="content" select="$complete-latex" />
+    </xsl:apply-templates>
+</xsl:template>
+
+<!-- Within a WeBWorK, md and rows are never numbered -->
+<xsl:template match="md" mode="displaymath-alignment">
     <xsl:choose>
+        <!-- look for @alignment override, possibly bad -->
+        <xsl:when test="@alignment='gather'">
+            <xsl:text>gathered</xsl:text>
+        </xsl:when>
+        <xsl:when test="@alignment='alignat'">
+            <xsl:text>alignedat</xsl:text>
+        </xsl:when>
+        <xsl:when test="@alignment='align'">
+            <xsl:text>aligned</xsl:text>
+        </xsl:when>
+        <xsl:when test="@alignment">
+            <xsl:message>PTX:ERROR:   display math @alignment attribute "<xsl:value-of select="@alignment" />" is not recognized (should be "aligned", "gathered", "alignedat")</xsl:message>
+            <xsl:apply-templates select="." mode="location-report" />
+        </xsl:when>
+        <!-- sniff for alignment specifications    -->
+        <!-- this can be easily fooled, eg matrices-->
         <xsl:when test="contains(., '&amp;') or contains(., '\amp')">
-            <xsl:text>[```</xsl:text>
-            <xsl:if test="$b-verbose">
-                <xsl:call-template name="select-latex-macros"/>
-            </xsl:if>
-            <xsl:text>\begin{aligned}&#xa;</xsl:text>
-            <xsl:apply-templates select="mrow" />
-            <xsl:text>\end{aligned}```]</xsl:text>
+            <xsl:text>aligned</xsl:text>
         </xsl:when>
         <xsl:otherwise>
-            <xsl:text>[```</xsl:text>
-            <xsl:if test="$b-verbose">
-                <xsl:call-template name="select-latex-macros"/>
-            </xsl:if>
-            <xsl:text>\begin{gathered}&#xa;</xsl:text>
-            <xsl:apply-templates select="mrow" />
-            <xsl:text>\end{gathered}```]</xsl:text>
+            <xsl:text>gathered</xsl:text>
         </xsl:otherwise>
     </xsl:choose>
+</xsl:template>
+
+<xsl:template match="md" mode="display-math-wrapper">
+    <xsl:param name="b-verbose" />
+    <xsl:param name="content" />
+    <xsl:text>&#xa;&#xa;</xsl:text>
+    <xsl:if test="ancestor::ul|ancestor::ol">
+        <xsl:call-template name="potential-list-indent" />
+    </xsl:if>
+    <xsl:text>[```</xsl:text>
+    <xsl:if test="$b-verbose">
+        <xsl:call-template name="select-latex-macros"/>
+    </xsl:if>
+    <xsl:value-of select="$content" />
+    <xsl:if test="ancestor::ul|ancestor::ol">
+        <xsl:call-template name="potential-list-indent" />
+    </xsl:if>
+    <xsl:text>```]</xsl:text>
     <xsl:text>&#xa;&#xa;</xsl:text>
     <xsl:if test="following-sibling::text()[normalize-space()] or following-sibling::*">
         <xsl:call-template name="potential-list-indent" />
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="md/mrow">
+<xsl:template match="mrow">
     <xsl:if test="ancestor::ul|ancestor::ol">
         <xsl:call-template name="potential-list-indent" />
     </xsl:if>
@@ -1474,9 +1522,34 @@
         <!-- pass the enclosing environment (md) as the context       -->
         <xsl:apply-templates select="parent::md" mode="get-clause-punctuation" />
     </xsl:if>
-    <xsl:if test="following-sibling::mrow">
+    <!-- PG cannot actually mirror LaTeX intertext funcitonality. As  -->
+    <!-- a consequence, we should not line break an mrow that         -->
+    <!-- immediately preceds an intertext.                            -->
+    <xsl:if test="following-sibling::mrow and not(following-sibling::*[1][self::intertext])">
        <xsl:text>\\</xsl:text>
     </xsl:if>
+    <xsl:text>&#xa;</xsl:text>
+</xsl:template>
+
+<xsl:template match="intertext">
+    <xsl:if test="ancestor::ul|ancestor::ol">
+        <xsl:call-template name="potential-list-indent" />
+    </xsl:if>
+    <xsl:text>\end{</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="displaymath-alignment"/>
+    <xsl:text>}```]&#xa;</xsl:text>
+    <xsl:if test="ancestor::ul|ancestor::ol">
+        <xsl:call-template name="potential-list-indent" />
+    </xsl:if>
+    <xsl:apply-templates />
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:if test="ancestor::ul|ancestor::ol">
+        <xsl:call-template name="potential-list-indent" />
+    </xsl:if>
+    <xsl:text>[```\begin{</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="displaymath-alignment"/>
+    <xsl:text>}</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="alignat-columns"/>
     <xsl:text>&#xa;</xsl:text>
 </xsl:template>
 
@@ -1492,7 +1565,7 @@
 <xsl:template match="quantity">
     <!-- warning if there is no content -->
     <xsl:if test="not(descendant::unit) and not(descendant::per) and not(descendant::mag)">
-        <xsl:message terminate="no">
+        <xsl:message>
         <xsl:text>PTX:WARNING: magnitude or units needed</xsl:text>
         </xsl:message>
     </xsl:if>
@@ -1553,7 +1626,7 @@
             <xsl:value-of select="@prefix" />
         </xsl:variable>
         <xsl:variable name="short">
-            <xsl:for-each select="document('mathbook-units.xsl')">
+            <xsl:for-each select="document('pretext-units.xsl')">
                 <xsl:value-of select="key('prefix-key',concat('prefixes',$prefix))/@short"/>
             </xsl:for-each>
         </xsl:variable>
@@ -1566,14 +1639,14 @@
                 <xsl:value-of select="@base" />
             </xsl:variable>
             <xsl:variable name="short">
-                <xsl:for-each select="document('mathbook-units.xsl')">
+                <xsl:for-each select="document('pretext-units.xsl')">
                     <xsl:value-of select="key('base-key',concat('bases',$base))/@short"/>
                 </xsl:for-each>
             </xsl:variable>
             <xsl:value-of select="$short" />
         </xsl:when>
         <xsl:otherwise>
-            <xsl:message terminate="no">
+            <xsl:message>
                 <xsl:text>PTX:WARNING: base unit needed</xsl:text>
             </xsl:message>
         </xsl:otherwise>

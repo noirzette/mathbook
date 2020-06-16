@@ -26,7 +26,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     xmlns:date="http://exslt.org/dates-and-times"
     extension-element-prefixes="exsl date"
 >
-<xsl:import href="./mathbook-latex.xsl" />
+<xsl:import href="./pretext-latex.xsl" />
 
 <xsl:output method="text" indent="no" encoding="UTF-8"/>
 
@@ -439,6 +439,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
       <xsl:text>\newcommand{\stale}[1]{\renewcommand{\ULthickness}{\stalethick}\sout{#1}}&#xa;</xsl:text>
     </xsl:if>
   </xsl:if>
+  <!-- 2020-05-28: this "if" was edited in xsl/pretext-latex and is no longer in-sync -->
   <xsl:if test="$document-root//fillin">
     <xsl:text>%% Used for fillin answer blank&#xa;</xsl:text>
     <xsl:text>%% Argument is length in em&#xa;</xsl:text>
@@ -474,7 +475,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>\ifxetex\sisetup{math-micro=\text{µ},text-micro=µ}\fi</xsl:text>
     <xsl:text>\ifluatex\sisetup{math-micro=\text{µ},text-micro=µ}\fi</xsl:text>
     <xsl:text>%% Common non-SI units&#xa;</xsl:text>
-    <xsl:for-each select="document('mathbook-units.xsl')//base[@siunitx]">
+    <xsl:for-each select="document('pretext-units.xsl')//base[@siunitx]">
       <xsl:text>\DeclareSIUnit\</xsl:text>
       <xsl:value-of select="@full" />
       <xsl:text>{</xsl:text>

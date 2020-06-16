@@ -129,10 +129,14 @@
                 </introduction>
 
                 <webwork xml:id="integer-addition">
+                    <description>
+                        Add two positive single-digit integers.
+                    </description>
+
                     <pg-code>
-                        $a = Compute(random(1, 9, 1));
-                        $b = Compute(random(1, 9, 1));
-                        $c = $a + $b;
+                        $a = random(1, 9, 1);
+                        $b = random(1, 9, 1);
+                        $c = Compute($a + $b);
                     </pg-code>
 
                     <statement>
@@ -161,9 +165,9 @@
 
                 <webwork xml:id="integer-addition-with-seed" seed="510">
                     <pg-code>
-                        $a = Compute(random(1, 9, 1));
-                        $b = Compute(random(1, 9, 1));
-                        $c = $a + $b;
+                        $a = random(1, 9, 1);
+                        $b = random(1, 9, 1);
+                        $c = Compute($a + $b);
                     </pg-code>
 
                     <statement>
@@ -186,10 +190,10 @@
 
                 <webwork xml:id="integer-addition-with-control-seed" seed="1">
                     <pg-code>
-                        $a = Compute(random(1, 9, 1));
-                        $b = Compute(random(1, 9, 1));
+                        $a = random(1, 9, 1);
+                        $b = random(1, 9, 1);
                         if ($envir{problemSeed}==1){$a=1;$b=2};
-                        $c = $a + $b;
+                        $c = Compute($a + $b);
                     </pg-code>
 
                     <statement>
@@ -217,8 +221,8 @@
 
                 <webwork>
                     <pg-code>
-                        $a = Compute(random(1, 9, 1));
-                        $b = Compute(random(1, 9, 1));
+                        $a = random(1, 9, 1);
+                        $b = random(1, 9, 1);
                         $c = $a + $b;
                         $expression = Formula("x^($a)*x^($b)");
 
@@ -261,8 +265,8 @@
                 <webwork>
                     <pg-code>
                         do {
-                            $a = Compute(list_random(2,3,5,6));
-                            $b = Compute(random(1, 5, 1));
+                            $a = list_random(2,3,5,6);
+                            $b = random(1, 5, 1);
                            } until (gcd($a,$b) == 1);
                         $c = $a * $b**2;
                         Context()->flags->set(reduceConstantFunctions=>0);
@@ -336,8 +340,11 @@
                 <title>Solving Quadratic Equations</title>
 
                 <webwork xml:id="quadratic-equation">
+                    <description>
+                        <line>Find a quadratic equation's solutions.</line>
+                        <line>One positive integer solution and one negative fraction solution.</line>
+                    </description>
 
-                    <!-- TODO: move out context shift -->
                     <pg-code>
                         Context("Fraction");
 
@@ -416,7 +423,7 @@
 
                 <p>The <url href="http://webwork.maa.org/wiki/Open_Problem_Library">Open Problem Library</url> (OPL) is a repository of curated <webwork /> problems. At last count it had something like 30,000 problems, searchable by topic.</p>
 
-                <p>Most of the problems in this sample chapter have their source authored within the same document as the narrative.  However the problems in this section are from the OPL and elsewhere on the server that is hosting the <webwork /> caclulations.  For HTML output we can connect to the server and render the problem here in an interactive fashion.  For print/PDF we use the <c>mbx</c> script to connect to the server to produce <pretext /> code for the problem.  We can use the <c>exercise.text.*</c> switches to control which parts of the problem (statements, solutions, hints) are incorporated.</p>
+                <p>Most of the problems in this sample chapter have their source authored within the same document as the narrative.  However the problems in this section are from the OPL and elsewhere on the server that is hosting the <webwork /> caclulations.  For HTML output we can connect to the server and render the problem here in an interactive fashion.  For print/PDF we use the <c>pretext</c> script to connect to the server to produce <pretext /> code for the problem.  We can use the <c>exercise.text.*</c> switches to control which parts of the problem (statements, solutions, hints) are incorporated.</p>
 
                 <p>Problems do not have to be in the OPL to reside on a server; any problem that is accessbile from the <webwork /> course which is hosting the <webwork /> computation may be used this way.</p>
 
@@ -531,7 +538,181 @@
                     </webwork>
                 </exercise>
 
+                <exercisegroup cols="2">
+                    <introduction>
+                        <p>
+                            For the given function <m>f</m>, find <m>\indefiniteintegral{f(x)}{x}</m>.
+                        </p>
+                        <p>
+                            Note that these common instructions are phrased in such a way
+                            that they would read well if they were applied to only one exercise at a time.
+                            That will happen if these exercises are exported as <c>.pg</c> files,
+                            for example to be used in online homework from a <webwork/> server.
+                        </p>
+                    </introduction>
+
+                    <exercise>
+                        <webwork>
+                            <pg-code>
+                                $answer = FormulaUpToConstant("-cos(x)");
+                            </pg-code>
+                            <statement>
+                                <p>
+                                    <m>f(x)=\sin(x)</m>
+                                </p>
+                                <p>
+                                    <var name="$answer" width="20"/>
+                                </p>
+                            </statement>
+                        </webwork>
+                    </exercise>
+
+                    <exercise>
+                        <webwork>
+                            <pg-code>
+                                $answer = FormulaUpToConstant("e^x");
+                            </pg-code>
+                            <statement>
+                                <p>
+                                    <m>f(x)=e^x</m>
+                                </p>
+                                <p>
+                                    <var name="$answer" width="20"/>
+                                </p>
+                            </statement>
+                        </webwork>
+                    </exercise>
+                </exercisegroup>
+
+                <exercise xml:id="ww-use-the-definition-of-the-derivative">
+                    <tite>Show Your Work</tite>
+                    <introduction>
+                        <p>
+                            Sometimes you would like a student to give a <q>simple</q> answer that <webwork/> can automatically assess,
+                            but you would also like the student to show their work or reasoning.
+                            Perhaps there is a particular method that you want to see the student use to find the answer.
+                            So you have a regular answer blank and also an essay blank.
+                            For practical reasons, you may wish to use the same problem on your <webwork/> server, but omit the essay part.
+                            For example, if you want to use that problem but leave out the manual grading.
+                            For this, <webwork/> has the <c>explanation_box</c> tool, demonstrated here.
+                        </p>
+                    </introduction>
+
+                    <webwork>
+                        <pg-code>
+                            $answer = Formula('2x');
+                            $showwork = '[@ explanation_box(message => "Show your work.") @]*';
+                        </pg-code>
+                        <statement>
+                            <p>
+                                Use the definition of the derivative to find <m>\frac{d}{dx}x^2</m>.
+                            </p>
+                            <p>
+                                <var name="$answer" width="10"/>
+                            </p>
+                            <p>
+                                <var name="$showwork" data="pgml"/>
+                            </p>
+                        </statement>
+                    </webwork>
+                </exercise>
+
             </exercises>
+        </section>
+
+        <section>
+            <title>Math Content</title>
+
+            <p>
+                This section helps with testing aspects of math content.
+            </p>
+
+            <exercise>
+                <title>Math Elements and Alignment</title>
+                <introduction>
+                    <p>
+                        In this exercise we demonstrate the allowed math elements: <tag>m</tag>, <tag>me</tag>, and <tag>md</tag>.
+                        The last of these may have attribute <attr>alignment</attr> with options <c>gather</c>, <c>align</c>, or <c>alignat</c>.
+                        The first two are used by default, depending on if you have <c>&amp;</c> or <c>\amp</c> in your math.
+                    </p>
+                </introduction>
+                <webwork>
+                    <statement>
+                        <p>
+                            If <m>a=5</m> and <m>b=12</m>, then <me>a^2+b^2=13^2</me>.
+                        </p>
+                        <p>
+                            Here, we solve an equation.
+                            <md>
+                                <mrow>2x+1 \amp= 3</mrow>
+                                <mrow>2x   \amp= 2</mrow>
+                                <mrow>x    \amp= 1</mrow>
+                            </md>
+                            Here we have a three-way inequality to solve.
+                            <md>
+                                <mrow>1 \lt 2x+1 \lt 3</mrow>
+                                <mrow>0 \lt 2x   \lt 2</mrow>
+                                <mrow>0 \lt x    \lt 1</mrow>
+                            </md>
+                            And here, we see a system of equations.
+                            <md alignment="alignat">
+                                <mrow>2x + 2y \amp {}+{} \amp z \amp {}={} \amp 10</mrow>
+                                <mrow>y \amp {}-{} \amp  4z \amp {}={} \amp 9</mrow>
+                                <mrow>\amp\amp   3z \amp {}={} \amp -6</mrow>
+                            </md>
+                        </p>
+                    </statement>
+                </webwork>
+            </exercise>
+
+            <exercise>
+                <title>Intertext</title>
+                <introduction>
+                    <p>
+                        With an <tag>md</tag> you might have <tag>intertext</tag> among the rows.
+                    </p>
+                </introduction>
+                <webwork>
+                    <statement>
+                        <p>
+                            Here, we solve an equation.
+                            <md>
+                                <mrow>2x+1 \amp= 3</mrow>
+                                <intertext> Now subtract <m>1</m> from each side.</intertext>
+                                <mrow>2x   \amp= 2</mrow>
+                                <intertext> Now divide by <m>2</m> on each side.</intertext>
+                                <mrow>x    \amp= 1</mrow>
+                            </md>
+                        </p>
+                        <p>
+                            We should also test when the <tag>md</tag> is within a list.
+                            <ol>
+                                <li>
+                                    <p>
+                                        Start a list.
+                                    </p>
+                                </li>
+                                <li>
+                                    <p>
+                                        <md>
+                                            <mrow>2x+1 \amp= 3</mrow>
+                                            <intertext> Now subtract <m>1</m> from each side.</intertext>
+                                            <mrow>2x   \amp= 2</mrow>
+                                            <intertext> Now divide by <m>2</m> on each side.</intertext>
+                                            <mrow>x    \amp= 1</mrow>
+                                        </md>
+                                    </p>
+                                </li>
+                                <li>
+                                    <p>
+                                        Still in the list?
+                                    </p>
+                                </li>
+                            </ol>
+                        </p>
+                    </statement>
+                </webwork>
+            </exercise>
         </section>
 
         <section>
@@ -744,7 +925,7 @@
                 </webwork>
             </exercise>
 
-            <!--Checkboxes not yet implemented fully. See note in mathbook-webwork-pg.xsl -->
+            <!--Checkboxes not yet implemented fully. See note in pretext-webwork-pg.xsl -->
             <!--<exercise>
                 <title>Choose several</title>
 
@@ -999,7 +1180,7 @@
             </exercise>
 
             <exercise>
-                <!--Checkbox not implemented yet; see note in mathbook-webwork-pg.xsl  -->
+                <!--Checkbox not implemented yet; see note in pretext-webwork-pg.xsl  -->
                 <title>Multiple choice by popup, radio buttons<!--, or checkbox--></title>
 
                 <webwork xml:id="multiple-choice-popup-or-radio-buttons">

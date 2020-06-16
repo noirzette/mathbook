@@ -1,4 +1,4 @@
-<?xml version='1.0'?>
+<?xml version='1.0' encoding="UTF-8"?>
 
 <!--********************************************************************
 Copyright 2019 Robert A. Beezer
@@ -20,13 +20,14 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************-->
 
 <!-- A conversion to "stock" PreTeXt HTML, but optimized as an     -->
-<!-- eventual input for teh liblouis system to produce Grade 2     -->
+<!-- eventual input for the liblouis system to produce Grade 2     -->
 <!-- and Nemeth Braille into BRF format with ASCII Braille         -->
 <!-- (encoding the 6-dot-patterns of cells with 64 well-behaved    -->
-<!-- ASCII characters).  By itself theis conversion is not useful. -->
+<!-- ASCII characters).  By itself this conversion is not useful.  -->
 <!-- The math bits (as LaTeX) need to be converted to Braille by   -->
-<!-- MathJax and Speech Rules Engine, and then fed to              -->
-<!-- liblouisutdml's  file2brl  program.                           -->
+<!-- MathJax and Speech Rules Engine, saved in a structured file   -->
+<!-- and pulled in here as replacements for the authored LaTeX.    -->
+<!-- Then we apply liblouisutdml's  file2brl  program.             -->
 
 <!-- http://pimpmyxslt.com/articles/entity-tricks-part2/ -->
 <!DOCTYPE xsl:stylesheet [
@@ -35,20 +36,25 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 ]>
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
+    xmlns:pi="http://pretextbook.org/2020/pretext/internal"
     xmlns:exsl="http://exslt.org/common"
     xmlns:str="http://exslt.org/strings"
     extension-element-prefixes="exsl str"
+    exclude-result-prefixes="pi"
     >
 
-<!-- desire HTML output, but primarily content -->
-<xsl:import href="mathbook-html.xsl" />
+<!-- Trade on HTML markup, numbering, chunking, etc.        -->
+<!-- Override as pecularities of liblouis conversion arise  -->
+<!-- NB: this will import -assembly and -common stylesheets -->
+<xsl:import href="./mathbook-html.xsl" />
 
-<xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+<!-- Output (xsl:output) is controlled by an explicit exsl:document() call -->
+<!-- later, for better control over the header of the resulting file       -->
 
 <!-- This variable is exclusive to the (imported) HTML conversion -->
 <!-- stylesheet.  It is defined there as false() and here we      -->
 <!-- redefine it as true().  This allows for minor variations     -->
-<!-- to be made in that stylesheet conditionally.                 -->
+<!-- to be made in the -html stylesheet conditionally.            -->
 <xsl:variable name="b-braille" select="true()"/>
 
 <!-- Only need one monolithic file, how to chunk -->
@@ -58,14 +64,22 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- NB: This will need to be expanded with terms like //subsection/exercises -->
 <xsl:variable name="b-has-subsubsection" select="boolean($document-root//subsubsection)"/>
 
+<!-- Necessary to get pre-constructed Nemeth braille for math elements. -->
+<xsl:param name="mathfile" select="''"/>
+<xsl:variable name="math-repr"  select="document($mathfile)/pi:math-representations"/>
+
+<!-- BANA Nemeth Guidance: "All other text, including -->
+<!-- punctuation that is logically associated with    -->
+<!-- surrounding sentences, should be done in UEB."   -->
+<xsl:variable name="math.punctuation.include" select="'none'"/>
+
 <!-- ############## -->
 <!-- Entry Template -->
 <!-- ############## -->
 
-<!-- These two templates are similar to those of  mathbook-html.xsl. -->
-<!-- Primarily the production of cross-reference ("xref") knowls     -->
-<!-- has been removed.                                               -->
-
+<!-- These two templates are similar to those of  pretext-html.xsl. -->
+<!-- Primarily the production of cross-reference ("xref") knowls    -->
+<!-- has been removed.                                              -->
 <xsl:template match="/">
     <xsl:apply-templates/>
 </xsl:template>
@@ -74,12 +88,21 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- There is always a "document root" directly under the mathbook element, -->
 <!-- and we process it with the chunking template called below              -->
 <!-- Note that "docinfo" is at the same level and not structural, so killed -->
-<!-- We process structural nodes via chunking routine in xsl/mathbook-common.xsl    -->
+<!-- We process structural nodes via chunking routine in xsl/pretext-common.xsl    -->
 <!-- This in turn calls specific modal templates defined elsewhere in this file     -->
 <xsl:template match="/mathbook|/pretext">
-    <xsl:call-template name="banner-warning">
-        <xsl:with-param name="warning">This template is under development.&#xa;It will not produce Braille directly, just a precursor.</xsl:with-param>
-    </xsl:call-template>
+    <!-- No point in proceeding without the file of braille   -->
+    <!-- representations, and right at the start, so a banner -->
+    <!-- warning for those who think this stylesheet alone    -->
+    <!-- might be good enough                                 -->
+    <xsl:if test="$mathfile = ''">
+        <xsl:call-template name="banner-warning">
+            <xsl:with-param name="warning">
+                <xsl:text>Conversion to braille requires using the pretext/pretext script to produce&#xa;a file of the Nemeth braille versions of mathematics (it might be relatively empty).&#xa;And then you might as well use the script itself to manage the whole process.&#xa;Quitting...</xsl:text>
+            </xsl:with-param>
+        </xsl:call-template>
+        <xsl:message terminate="yes"/>
+    </xsl:if>
     <xsl:apply-templates select="$root" mode="generic-warnings" />
     <xsl:apply-templates select="$root" mode="deprecation-warnings" />
     <xsl:apply-templates mode="chunking" />
@@ -89,20 +112,24 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Page Construction -->
 <!-- ################# -->
 
-<!-- A greatly simplified file-wrap template      -->
-<!-- Drop file output, so we can script on stdout -->
+<!-- A greatly simplified file-wrap template -->
+<!-- We hard-code the name of the output file as   -->
+<!-- "liblouis-precursor.html" and ensure here     -->
+<!-- that we get an XML declaration, indentation,  -->
+<!-- and encoding.  file2brl seems to be sensitive -->
+<!-- to the form of the header of the output here. -->
 <xsl:template match="*" mode="file-wrap">
     <xsl:param name="content" />
 
-    <html>
-        <head>
-        <!-- some MathJax config? -->
-        </head>
-        <body>
-            <xsl:call-template name="latex-macros" />
-            <xsl:copy-of select="$content" />
-        </body>
-    </html>
+    <exsl:document href="liblouis-precursor.xml" method="xml" version="1.0" indent="yes" encoding="UTF-8">
+        <html>
+            <head>
+            </head>
+            <body>
+                <xsl:copy-of select="$content" />
+            </body>
+        </html>
+    </exsl:document>
 </xsl:template>
 
 <!-- The "frontmatter" and "backmatter" of the HTML version are possibly -->
@@ -469,161 +496,67 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Mathematics -->
 <!-- ########### -->
 
-<!-- Nemeth indicator use described in:            -->
-<!-- Braille Authority of North America (BANA),    -->
-<!-- "Guidance for Transcription Using the Nemeth  -->
-<!-- Code within UEB Contexts Revised", April 2018 -->
-<!-- Hereafter "BANA Nemeth Guidance"              -->
-
-<!-- BANA Nemeth Guidance quotes "Rules of Unified English Braille 2013" -->
-<!--                                                                     -->
-<!-- 14.6 Nemeth Code within UEB text                                    -->
-<!--                                                                     -->
-<!-- 14.6.1 When technical material is transcribed according to the      -->
-<!-- provisions of The Nemeth Braille Code for Mathematics and Science   -->
-<!-- Notation within UEB text, the following sections provide for        -->
-<!-- switching between UEB and Nemeth Code.                              -->
-<!--                                                                     -->
-<!-- 14.6.2 Place the opening Nemeth Code indicator followed by a        -->
-<!-- space before the sequence to which it applies. Its effect is        -->
-<!-- terminated by the Nemeth Code terminator preceded by a space.       -->
-<!-- Note: The spaces required with the indicator and the terminator     -->
-<!-- do not represent spaces in print.                                   -->
-<!--                                                                     -->
-<!-- 14.6.3 When the Nemeth Code text is displayed on one or more lines  -->
-<!-- separate from the UEB text, the opening Nemeth Code indicator and   -->
-<!-- the Nemeth Code terminator may each be placed on a line by itself   -->
-<!-- or at the end of the previous line of text.                         -->
-
-<!-- Opening Nemeth Code indicator -->
-<!-- _%,  4-5-6 1-4-6,  x5f x25    -->
-<!-- always followed by a space    -->
-<!-- technically a UEB symbol      -->
-<xsl:template name="open-nemeth">
-    <!-- <xsl:text>&#x5f;&#x25; </xsl:text> -->
-    <xsl:text>&#x2838;&#x2829;&#x20;</xsl:text>
-</xsl:template>
-
-<!-- Nemeth Code terminator      -->
-<!-- _:,  4-5-6 1-5-6,  x5f x3a  -->
-<!-- always preceded by a space  -->
-<!-- technically a Nemeth symbol -->
-<xsl:template name="close-nemeth">
-    <xsl:text>&#x20;&#x2838;&#x2831;</xsl:text>
-</xsl:template>
-
-<!-- Single-word switch indicator ,' -->
-
-<!-- ################## -->
-<!-- Inline Mathematics -->
-<!-- ################## -->
-
-<!-- We place the Nemeth open/close symbols via   -->
-<!-- import of the base HTML/LaTeX representation -->
-<xsl:template match="m">
-    <!-- we look for very simple math (one-letter variable names) -->
-    <!-- so we process the content (which can have "xref", etc)   -->
-    <xsl:variable name="content">
-        <xsl:apply-templates select="*|text()"/>
+<!-- Nemeth braille representation of mathematics are constructed -->
+<!-- previously and collected in the $math-repr variable/tree.    -->
+<!-- So most distinctions have already been handled in that       -->
+<!-- construction and here we do a replacement.                   -->
+<!-- We indicate the math/braille with a "nemeth" element that is -->
+<!-- interpreted by liblouis' "generic" rule to supply the actual -->
+<!-- indicators.                                                  -->
+<xsl:template match="m|me|men|md|mdn">
+    <!-- We connect source location with representations via id -->
+    <xsl:variable name="id">
+        <xsl:apply-templates select="." mode="visible-id"/>
     </xsl:variable>
+    <!-- And the braille string itself.  We remove ASCII space  -->
+    <!-- which is present as a testing artifact.  Remove later. -->
+    <!-- Real spaces are Unicode braille blank pattern (?),     -->
+    <!-- U+2800, while testing spaces are ASCII spaces, U+0020. -->
+    <xsl:variable name="spaced-braille" select="$math-repr/pi:math[@id = $id]"/>
+    <xsl:variable name="braille" select="translate($spaced-braille, '&#x20;', '')"/>
+    <!-- We investigate actual source for very simple math   -->
+    <!-- (one-letter variable names in Latin letters), so we -->
+    <!-- process the content (which could have "xref", etc)  -->
+    <xsl:variable name="content">
+        <xsl:apply-templates select="node()"/>
+    </xsl:variable>
+    <xsl:variable name="clean-content" select="normalize-space($content)"/>
     <xsl:choose>
-        <!-- one Latin letter -->
-        <xsl:when test="(string-length($content) = 1) and
-                        contains('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $content)">
+        <!-- inline math with one Latin letter  -->
+        <!-- $braille is ignored.  c'est la vie -->
+        <xsl:when test="(self::m and string-length($clean-content) = 1) and
+                        contains(&ALPHABET;, $clean-content)">
+            <!-- class is signal to liblouis styling rules -->
             <i class="one-letter">
-                <xsl:value-of select="."/>
+                <xsl:value-of select="$clean-content"/>
             </i>
         </xsl:when>
+        <xsl:when test="self::m">
+            <!-- We get Nemeth braille as Unicode, and    -->
+            <!-- wrap with a made-up element for liblouis -->
+            <!-- to interpret with open/close indicators  -->
+            <nemeth class="inline">
+                <xsl:value-of select="$braille"/>
+            </nemeth>
+        </xsl:when>
         <xsl:otherwise>
-            <xsl:apply-imports/>
+            <!-- For me|men|md|mdn entirely similar,   -->
+            <!-- but we have a div to signal liblouis  -->
+            <!-- to use our liblouis displaymath style -->
+            <div class="displaymath">
+                <nemeth>
+                    <xsl:value-of select="$braille"/>
+                </nemeth>
+            </div>
         </xsl:otherwise>
     </xsl:choose>
-</xsl:template>
-
-<!-- ################### -->
-<!-- Display Mathematics -->
-<!-- ################### -->
-
-
-<!-- For single-line math we preserve the  div.displaymath -->
-<!-- which we can use to initiate a new line via liblouis. -->
-<!-- We also append the tag.  None of this is much tested  -->
-<!-- for "md" and "mdn".                                   -->
-
-<xsl:template name="display-math-visual-blank-line"/>
-
-<!-- We add the tag *after* the produced LaTeX environment, but *before* the liblouis-controlled div.displaymath ends, so the tag is on the same line. -->
-<xsl:template match="me|men|md|mdn" mode="display-math-wrapper">
-    <xsl:param name="b-original" select="true()" />
-    <xsl:param name="content" />
-    <div class="displaymath">
-        <xsl:apply-templates select="." mode="insert-paragraph-id" >
-            <xsl:with-param name="b-original" select="$b-original" />
-        </xsl:apply-templates>
-        <xsl:copy-of select="$content" />
-        <xsl:if test="self::men">
-            <xsl:text>&#x20;(</xsl:text>
-            <xsl:apply-templates select="." mode="number"/>
-            <xsl:text>)</xsl:text>
-        </xsl:if>
-    </div>
-</xsl:template>
-
-<!-- Tags for "men" are accomodated above, so we kill the -->
-<!-- usual LaTeX/MathJax routine which employs \tag{}     -->
-<xsl:template match="men" mode="tag"/>
-
-<!-- BANA Nemeth Guidance: "All other text, including -->
-<!-- punctuation that is logically associated with    -->
-<!-- surrounding sentences, should be done in UEB."   -->
-<!-- So we do not move "clause-ending punctuation,"   -->
-<!-- and we just put it back in place.  ;-)           -->
-
-<!-- Do not grab/use "clause-ending punctuation" -->
-<xsl:template match="*" mode="get-clause-punctuation"/>
-
-<!-- Xerox $text, effectively *not* removing any punctuation. -->
-<xsl:template name="drop-clause-punctuation">
-    <xsl:param name="text" />
-    <xsl:value-of select="$text" />
-</xsl:template>
-
-<!-- Hack: treat md/mrow as a sequence of me and remove      -->
-<!-- alignment points.  This is an experiment at this point, -->
-<!-- it has flaws and has not been thoroughly tested.        -->
-
-<xsl:template match="md|mdn" mode="body">
-    <!-- block-type parameter is ignored, since the          -->
-    <!-- representation never varies, no heading, no wrapper -->
-    <xsl:param name="block-type" />
-    <!-- If original content, or a duplication -->
-    <xsl:param name="b-original" select="true()" />
-    <!-- If the only content of a knowl ("men") then we  -->
-    <!-- do not include adjacent (trailing) punctuation, -->
-    <!-- since it is meaningless                         -->
-    <xsl:param name="b-top-level" select="false()" />
-    <!-- Look across all mrow for 100% no-number rows              -->
-    <!-- This just allows for slightly nicer human-readable source -->
-    <xsl:variable name="b-nonumbers" select="self::md and not(mrow[@number='yes' or @tag])" />
-    <xsl:variable name="complete-latex">
-        <xsl:apply-templates select="mrow|intertext" />
-    </xsl:variable>
-    <xsl:value-of select="$complete-latex" />
-</xsl:template>
-
-<xsl:template match="mrow">
-    <xsl:variable name="aligned-row">
-        <xsl:apply-imports/>
-    </xsl:variable>
-    <xsl:variable name="unaligned" select="translate($aligned-row, '&amp;', '')"/>
-    <!-- there is also a "max-ampersands" template that could be used in the "md" template -->
-    <!-- <xsl:message>Amps: <xsl:value-of select="string-length($aligned-row) - string-length(translate($aligned-row, '&amp;', ''))"/></xsl:message> -->
-    <xsl:call-template name="open-nemeth"/>
-    <xsl:text>\begin{equation*}&#xa;</xsl:text>
-        <xsl:value-of select="$unaligned"/>
-    <xsl:text>\end{equation*}&#xa;</xsl:text>
-    <xsl:call-template name="close-nemeth"/>
-    <xsl:text>&#xa;</xsl:text>
+    <!-- The braille representations of math elements should not migrate any -->
+    <!-- clause-ending punctuation from trailing text nodes.  So we should   -->
+    <!-- not need to invoke the "get-clause-punctuation" modal template here -->
+    <!-- NB: we could set  math.punctuation.include  to strip punctuation,   -->
+    <!-- and then use "get-clause-punctuation" to put it back somewhere      -->
+    <!-- above, such as inside the "displaymath" div so that it appears      -->
+    <!-- before a concluding line break, say.                                -->
 </xsl:template>
 
 <!-- ################ -->
@@ -683,6 +616,8 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:copy>
 </xsl:template>
 
+<!-- TODO: subtract 1 from "item-number"   -->
+<!-- when "format-code" template gives '0' -->
 <xsl:template match="ol/li" mode="body">
     <li>
         <xsl:apply-templates select="." mode="item-number"/>

@@ -34,7 +34,7 @@
 <!-- List of auxiliary XML this sytle sheet merges:                        -->
 <!-- * WeBWorK extractions                                                 -->
 
-<xsl:import href="./mathbook-common.xsl" />
+<xsl:import href="./pretext-common.xsl" />
 
 <!-- We output a single, large .ptx file for further -->
 <!-- processing by other PTX style sheets            -->
@@ -66,7 +66,7 @@
 <!-- Then authored?, pg?, and static children -->
 <xsl:template match="webwork[node()|@*]">
     <xsl:if test="not($b-webwork-extraction)">
-        <xsl:message terminate="yes">PTX:ERROR   You must specify the location of the webwork extraction using the "webwork.extraction" command line stringparam.  Use the mbx script and webwork component to collect these files from a WeBWorK server. Quitting...</xsl:message>
+        <xsl:message terminate="yes">PTX:FATAL:   you must specify the location of the webwork extraction using the "webwork.extraction" command line stringparam.  Use the pretext script and webwork component to collect these files from a WeBWorK server. Quitting...</xsl:message>
     </xsl:if>
     <xsl:variable name="ww-id">
         <xsl:apply-templates select="." mode="visible-id" />

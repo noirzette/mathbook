@@ -11,7 +11,7 @@
     <title>Processing, Tools and Workflow</title>
 
     <introduction>
-        <p>This chapter explains in full detail how to combine your source file with an XSL stylesheet to produce output.  It expands on the simple example in <xref ref="quickstart-example" /> and should also be read in conjunction with the chapter on the <c>mbx</c> script (<xref ref="mbx-script" />).</p>
+        <p>This chapter explains in full detail how to combine your source file with an XSL stylesheet to produce output.  It expands on the simple example in <xref ref="quickstart-example" /> and should also be read in conjunction with the chapter on the <c>pretext</c> script (<xref ref="pretext-script" />).</p>
     </introduction>
 
     <section xml:id="processing-basic">
@@ -24,13 +24,13 @@
         <sidebyside>
             <console>
                 <prompt>rob@lava:~/mathbook$ </prompt>
-                <input>xsltproc xsl/mathbook-html.xsl ~/books/aota/animals.xml</input>
+                <input>xsltproc xsl/pretext-html.xsl ~/books/aota/animals.xml</input>
             </console>
         </sidebyside>
 
         <p>By default, <c>xsltproc</c> writes output to <c>stdout</c> (the screen), which you could redirect to a file, or you could use the <c>-o</c> switch to send the output to a named file.  However, <pretext /> automatically writes to a file whose name is derived from the <attr>xml:id</attr> attribute of the top-level <tag>book</tag> or <tag>article</tag> tag.  If no such attribute is given the filename will be derived from <c>book-1</c> or <c>article-1</c>.  All output is produced in whatever the current default directory is, so you will likely want to set this beforehand.</p>
 
-        <p>The <c>xsl</c> subdirectory of the <pretext /> distribution contains a variety of XSL stylesheets<idx>XSL stylesheet</idx>, which I will also refer to as <term>converters</term><idx><h>converter</h><see>XSL stylesheet</see></idx> or <term>conversions</term><idx><h>conversion</h><see>XSL stylesheet</see></idx>.  The ones that you will use as an author all have filenames of the form <c>xsl/mathbook-XXX.xsl</c>, where <c>XXX</c> is some indication of the output produced.  Conversions to <latex /> or HTML output are the two most mature converters.</p>
+        <p>The <c>xsl</c> subdirectory of the <pretext /> distribution contains a variety of XSL stylesheets<idx>XSL stylesheet</idx>, which I will also refer to as <term>converters</term><idx><h>converter</h><see>XSL stylesheet</see></idx> or <term>conversions</term><idx><h>conversion</h><see>XSL stylesheet</see></idx>.  The ones that you will use as an author all have filenames of the form <c>xsl/pretext-XXX.xsl</c>, where <c>XXX</c> is some indication of the output produced.  Conversions to <latex /> or HTML output are the two most mature converters.</p>
 
         <p>Note that authors are not responsible for creating XSL stylesheets.  Stock conversions are part of the <pretext /> distribution, and anybody is welcome to assume a source document is valid <pretext /> and create new conversions to process it to existing, or as yet unimagined, formats.</p>
     </section>
@@ -47,7 +47,7 @@
             <li><p>Within the <tag>chapter</tag> element for the chapter on mammals, add the line <c>&lt;xi:include href="monkeys.xml" /&gt;</c> to <q>pull in</q> the section on monkeys at that location.  The <attr>href</attr> attribute can point to a file in a subdirectory, but will be interpreted relative to the location of the file containing the mammal chapter element.</p></li>
             <li><p>Add the switch <c>-xinclude</c> to your invocation of <c>xsltproc</c>, just after <c>xsltproc</c>, but before the filenames for the stylesheet and the master source file.  Note that for some versions of <c>xsltproc</c> it might be necessary to use two dashes for the switch, <c>--xinclude</c>.</p></li>
         </ol>So now a typical invocation (using one dash) might look like<cd>
-            <cline>xsltproc -xinclude xsl/mathbook-html.xsl ~/books/aota/animals.xml</cline>
+            <cline>xsltproc -xinclude xsl/pretext-html.xsl ~/books/aota/animals.xml</cline>
         </cd></p>
 
         <p>Note that when you invoke <c>xsltproc</c> the default directory can be far away from your source, and the processor will locate all the component files of your project through the relative file locations in the <attr>href</attr> attribute.  Several comments are in order.<ul>
@@ -85,13 +85,13 @@
 
         <p>At this writing (2019-07-10) we have begun to transition between two different ways to accomplish this.  The new method is to create a <term>publisher file</term> that is an <init>XML</init> file that specifies options that are independent of your source material.  See <xref ref="publisher-file"/> in <xref ref="part-publisher"/> for details.  We continue to provide many of the values for these parameters on the command-line <em>at processing time</em>.  They have become known as <term>stringparam</term><idx>stringparam</idx> for a soon-to-be obvious reason.</p>
 
-        <p>Suppose you want to make a large-font version of your textbook for a student who has limited vision.  Look inside the top of <c>xsl/mathbook-latex.xsl</c> and find the <c>latex.font.size</c> parameter.  The preceding comments in this file suggest <c>20pt</c> is the maximum supported.  So you would use a command-line like the following (possibly with <c>--xinclude</c>, <etc />).</p>
+        <p>Suppose you want to make a large-font version of your textbook for a student who has limited vision.  Look inside the top of <c>xsl/pretext-latex.xsl</c> and find the <c>latex.font.size</c> parameter.  The preceding comments in this file suggest <c>20pt</c> is the maximum supported.  So you would use a command-line like the following (possibly with <c>--xinclude</c>, <etc />).</p>
 
         <sidebyside>
             <console>
                 <prompt>$ </prompt>
                 <input>xsltproc -o animals.tex --stringparam latex.font.size "20pt"</input>
-                <input>  /path/to/xsl/mathbook-latex.xsl ~/books/aota/animals.xml</input>
+                <input>  /path/to/xsl/pretext-latex.xsl ~/books/aota/animals.xml</input>
             </console>
         </sidebyside>
 
@@ -134,7 +134,7 @@
         <idx>Inkscape</idx>
         <idx><h>vector graphics</h><h>Inkscape</h></idx> 
 
-        <p>A strength of <pretext/> is the ability to create diagrams and images with editable source code, embedded alongside your other <pretext/> source material (<xref ref="topic-images-source"/>, <xref ref="processing-images-mbx"/>).  But sometimes you want, or need, to be more artistic.  <url href="https://inkscape.org/">Inkscape</url><fn><c>inkscape.org/</c></fn> is a great tool for creating images.  It ticks all the boxes: open source, mature, cross-platform, standards-compliant.  Bethany Llewellyn heped research Inkscape capabilities for this section.</p>
+        <p>A strength of <pretext/> is the ability to create diagrams and images with editable source code, embedded alongside your other <pretext/> source material (<xref ref="topic-images-source"/>, <xref ref="processing-images-pretext"/>).  But sometimes you want, or need, to be more artistic.  <url href="https://inkscape.org/">Inkscape</url><fn><c>inkscape.org/</c></fn> is a great tool for creating images.  It ticks all the boxes: open source, mature, cross-platform, standards-compliant.  Bethany Llewellyn heped research Inkscape capabilities for this section.</p>
 
         <p>Inkscape's native file format is Scalable Vector Graphics (<init>SVG</init>).  As the name suggests, this translates into excellent support for vector graphics.  (See <xref ref="topic-images-raster"/> and <xref ref="topic-images-vector"/> for the distinction.)  Why use Inkscape?<ul>
             <li><init>SVG</init> files are small and scale smoothly when you zoom in on a web page.  So this format is our top choice for how images are realized in the <init>HTML</init> output.  They will also work well in formats based on <init>HTML</init>, such as <init>EPUB</init>.</li>
@@ -172,16 +172,16 @@
         </list>
     </section>
 
-    <section xml:id="processing-images-mbx">
-        <title>Images and the <c>mbx</c> Script</title>
+    <section xml:id="processing-images-pretext">
+        <title>Images and the <c>pretext</c> Script</title>
 
         <p>We believe it is important to preserve a record of how diagrams and other graphics are produced.  This can be easy when a graphics language is employed to describe the graphical elements, rather than creating a bit-mapped image with some other interface.  So we have <tag>asymptote</tag>, <tag>latex-image</tag>, and <tag>sageplot</tag> for elements holding code to produce diagrams or images<idx>image</idx>.</p>
 
         <p>The upside to this is that small edits to the code can easily accomplish minor changes or corrections necessary for the images.  The <latex /> macros provided by an author can be used in the text <em>and</em> in a diagram, leading to greater consistency between the two.  Finally, starting from source, we can do the best possible job of producing image formats that are compatible with the document output formats and which scale smoothly in PDFs and in web browsers.</p>
 
-        <p>The downside to this is that XSL is not a general purpose programming language, and so in particular, cannot call <q>helper</q> programs such as <c>asy</c>, <c>pdflatex</c>, and <c>sage</c>.  The general strategy is to use XSL to identify and isolate the parts of a document that lie in the elements designed for graphics languages.  A Python script, the <c>mbx</c> script, employs these XSL stylesheets and then feeds each image file to the appropriate helper program.</p>
+        <p>The downside to this is that XSL is not a general purpose programming language, and so in particular, cannot call <q>helper</q> programs such as <c>asy</c>, <c>pdflatex</c>, and <c>sage</c>.  The general strategy is to use XSL to identify and isolate the parts of a document that lie in the elements designed for graphics languages.  A Python script, the <c>pretext</c> script, employs these XSL stylesheets and then feeds each image file to the appropriate helper program.</p>
 
-        <p>This script has a variety of options, so we document it fully in <xref ref="mbx-script" />.</p>
+        <p>This script has a variety of options, so we document it fully in <xref ref="pretext-script" />.</p>
     </section>
 
     <section xml:id="processing-author-tools">
@@ -221,19 +221,19 @@
 
         <p>One choice of the parameter will result in just <q>copying</q> your source file and making all the cosmetic source format changes (we refer to this here as <term>normalization</term><idx>normalization</idx>).  This might be a useful thing to do first, all by itself, either as a first step, or an exploratory experiment.  The other value of the parameter will actually make changes, and report some information about progress.</p>
 
-        <p>Here are some notes:<ul>
+        <p>Here are some notes:<ol>
             <li><p>Be sure to experiment on copies of your source in a scratch directory.  Send your output to another directory.  When finished, use a <c>diff</c> tool to inspect the actual changes made.  You can record your eventual changes using revision-control. (See <pubtitle><url ref="https://pretextbook.org/gfa/html/">Git for Authors</url></pubtitle>.)</p></li>
             <li><p>Do not enable <c>xinclude</c> processing or else your several files will all be merged into one as output and any modularity of your source will be lost.</p></li>
             <li><p>Every single bit of indentation and whitespace in your source will be preserved, except perhaps for some blank lines near the top of your source files, and limited exceptions noted below.</p></li>
             <li><p>Attributes will likely be re-ordered, with normalized spacing between them.</p></li>
             <li><p>Empty elements will have any spaces removed from the end of the tag.</p></li>
             <li><p>Elements with no content may be written with a single empty tag.</p></li>
-            <li><p><abbr>CDATA</abbr> sections will be converted to text acceptable to the <init>XML</init> parser.  In other words, the <abbr>CDATA</abbr> wrapper will be removed and dangerous characters (&amp;, &lt;, &gt;) will be replaced by equivalent entities (such as <c>&amp;amp;</c>).  If you have many matrices expressed in <latex /> and wrapped in a <abbr>CDATA</abbr>, this might be a big change.</p></li>
+            <li xml:id="deprecation-fixer-cdata"><p><abbr>CDATA</abbr> sections will be converted to text acceptable to the <init>XML</init> parser.  In other words, the <abbr>CDATA</abbr> wrapper will be removed and dangerous characters (&amp;, &lt;, &gt;) will be replaced by equivalent entities (such as <c>&amp;amp;</c>).  If you have many matrices expressed in <latex /> and wrapped in a <abbr>CDATA</abbr>, this might be a big change.  See <xref ref="topic-exceptional-characters"/> for background.</p></li>
             <li><p>The output files will be labeled as having <c>UTF-8</c> encoding.</p></li>
             <li><p>It could be necessary to run this conversion more than once if deprecations build on one another.  In other words, we do not update specific conversions, but rely on regular use to keep source up-to-date.</p></li>
             <li><p>It should be safe to run this conversion repeatedly, even after new deprecations are added.  In fact, it is encouraged.</p></li>
             <li><p>The <pretext /> source file <c>examples/sample-errors-and-warnings.xml</c> is intentionally full of lots of bad stuff.  You can experiment with it, should you want to see interesting things happen.  We have already performed the normalization step, so you can concentrate on substantive changes.</p></li>
-        </ul></p>
+        </ol></p>
 
         <p>To process a directory with multiple source files, I would proceed as follows.  First make three temporary directories, <c>/tmp/original</c>, <c>/tmp/normal</c>, <c>/tmp/clean</c>, and copy my source files into <c>/tmp/original</c>.  Then, using a BASH shell, and inputting the command all on one long line,</p>
 
@@ -296,7 +296,7 @@
         <paragraphs>
             <title>Image Files</title>
 
-            <p>Some images are raster images (<eg /> photographs) that are not easily changed, and perhaps unlikely to be changed.  Other images will come from source-level languages via the <c>mbx</c> script.  For your convenience, this script has a command-line option that allows you to direct output (graphics files) to a directory of your choice.</p>
+            <p>Some images are raster images (<eg /> photographs) that are not easily changed, and perhaps unlikely to be changed.  Other images will come from source-level languages via the <c>pretext</c> script.  For your convenience, this script has a command-line option that allows you to direct output (graphics files) to a directory of your choice.</p>
 
             <p>In the early stages of writing a book, I put image files<idx>image</idx> produced from source code in a directory outside of what is tracked by <c>git</c>. It is only when a project is very mature that I begin to include completed graphics files into the <c>src/images</c> directory for tracking by <c>git</c>.</p>
         </paragraphs>
@@ -310,9 +310,9 @@
 
             <p>My use of <c>make</c> is a bit of an abuse, since it is really designed for large software projects, with the aim of reducing duplicative compilations and that is not at all the purpose.  You could likely have exactly the same effect with a shell script and a case (or switch) statement.</p>
 
-            <p>My general strategy is to assemble all the necessary files into a temporary directory (under <c>/tmp</c> in Linux) by copying them out of their permanent home, copy customizing XSL into the right place (typically <c>mathbook/user</c>), run the <c>mbx</c> script as necessary and direct the results to the right place, and finally copy results out of the temporary directory if they are meant to be permanent.  Interesting, an exception to staging all these files is the source of the book itself which is only read for each conversion and then not needed for the output.  So you can just point directly to a master file and the <c>xinclude</c> mechanism locates any other necessary source files.</p>
+            <p>My general strategy is to assemble all the necessary files into a temporary directory (under <c>/tmp</c> in Linux) by copying them out of their permanent home, copy customizing XSL into the right place (typically <c>mathbook/user</c>), run the <c>pretext</c> script as necessary and direct the results to the right place, and finally copy results out of the temporary directory if they are meant to be permanent.  Interesting, an exception to staging all these files is the source of the book itself which is only read for each conversion and then not needed for the output.  So you can just point directly to a master file and the <c>xinclude</c> mechanism locates any other necessary source files.</p>
 
-            <p>A good example of this general strategy is the use and placement of image files for HTML output.  It is your responsibility to place images into the location your resulting HTML files expect to locate them.  By default, this is a subdirectory of the directory holding the HTML files, named <c>images</c>.  You will want to copy images, such as photographs, out of your main source directory (<c>src/images</c>?). But you may be actively modifying source code for diagrams, and you want to re-run the <c>mbx</c> script for each run, and make sure the output of the script is directed to the correct subdirectory for the HTML output.  Running the <c>mbx</c> script frequently can get tiresome, so maybe you have a makefile target <c>make diagrams</c> that updates a permanent directory, outside of your tracked files in the repository, and you copy those files into the correct subdirectory for the output.  That way, you can update images only when you are actively editing them, or when you are producing a draft that you want to be as up-to-date as possible.  As a project matures, you can add images into the directory tracked by <c>git</c> so they are available to others without getting involved with the <c>mbx</c> script.</p>
+            <p>A good example of this general strategy is the use and placement of image files for HTML output.  It is your responsibility to place images into the location your resulting HTML files expect to locate them.  By default, this is a subdirectory of the directory holding the HTML files, named <c>images</c>.  You will want to copy images, such as photographs, out of your main source directory (<c>src/images</c>?). But you may be actively modifying source code for diagrams, and you want to re-run the <c>pretext</c> script for each run, and make sure the output of the script is directed to the correct subdirectory for the HTML output.  Running the <c>pretext</c> script frequently can get tiresome, so maybe you have a makefile target <c>make diagrams</c> that updates a permanent directory, outside of your tracked files in the repository, and you copy those files into the correct subdirectory for the output.  That way, you can update images only when you are actively editing them, or when you are producing a draft that you want to be as up-to-date as possible.  As a project matures, you can add images into the directory tracked by <c>git</c> so they are available to others without getting involved with the <c>pretext</c> script.</p>
 
             <p>We did not say it would be easy, but we feel much of this sort of project management is outside the scope of the <pretext /> project itself, while in its initial stages, and existing tools to manage the complexity are available and documented.  (We <em>have</em> been encouraged to create sample scripts, which we may do.)  Just remember the strategy: stage necessary components in a temporary directory, build output in that directory, copy out desired semi-permanent results, and limit additions to the source directory to that which is original, or mature and time-consuming to reproduce.</p>
         </paragraphs>
@@ -321,7 +321,7 @@
     <section xml:id="processing-testing-html">
         <title>Testing <init>HTML</init> Output Locally</title>
 
-        <p>Certain complicated parts of <init>HTML</init> output will not always function when you look at <pretext /> output by just opening files in your web browser.  These include knowls, Sage cells, and YouTube videos.  This is a consequence of security policies and so will vary from browser to browser.  A solution is to run a web server on your own machine, which is much easier than it sounds.  The one prerequisite is that you have Python installed, as is normally the case on any Linux or Mac computer.  On Windows, you may need to install Python yourself, but you may eventually need it for the <c>mbx</c> script anyway (<xref ref="mbx-script" />).  The following has been tested on Ubuntu Linux 16.10 and MacOS 10.12 (2017-08-06).</p>
+        <p>Certain complicated parts of <init>HTML</init> output will not always function when you look at <pretext /> output by just opening files in your web browser.  These include knowls, Sage cells, and YouTube videos.  This is a consequence of security policies and so will vary from browser to browser.  A solution is to run a web server on your own machine, which is much easier than it sounds.  The one prerequisite is that you have Python installed, as is normally the case on any Linux or Mac computer.  On Windows, you may need to install Python yourself, but you may eventually need it for the <c>pretext</c> script anyway (<xref ref="pretext-script" />).  The following has been tested on Ubuntu Linux 16.10 and MacOS 10.12 (2017-08-06).</p>
 
         <p>Python 2 and Python 3 are different in some regards, and that is the case here.  Your system may have commands <c>python2</c>, <c>python3</c>, and/or plain <c>python</c>.  Experiment with variants of the following two commands.  First, at a command-line, set your working directory to be the location of a directory containing the <init>HTML</init> files you want to test.<cd>
             <cline>python3 -m http.server</cline>
@@ -351,7 +351,7 @@
 
         <p>One of our main motivations for this project was mixing in code from the powerful, open source, mathematical software project, Sage (<xref ref="overview-sage" />).  When you add example Sage code to illustrate mathematical ideas, you are then encouraged to also include expected output in the <tag>output</tag> element.  Here comes one of the powerful advantages of XML source and XSL processing.</p>
 
-        <p>The <c>mathbook/xsl/mathbook-sage-doctest.xsl</c> stylesheet, used in the usual way, will create one (or several, depending on the <c>chunk.level</c> stringparam) file(s), in <em>exactly</em> the format Sage expects for automated testing.  So all your words are gone, and all your Sage input and output is packaged so Sage can run all the <tag>input</tag> and compare the results to the expected <tag>output</tag>.</p>
+        <p>The <c>mathbook/xsl/pretext-sage-doctest.xsl</c> stylesheet, used in the usual way, will create one (or several, depending on the <c>chunk.level</c> stringparam) file(s), in <em>exactly</em> the format Sage expects for automated testing.  So all your words are gone, and all your Sage input and output is packaged so Sage can run all the <tag>input</tag> and compare the results to the expected <tag>output</tag>.</p>
 
         <p>We have many years' experience testing hundreds of non-trivial Sage examples from textbooks, for linear algebra and abstract algebra.  Roughly every six months, we discover ten to twenty examples that fail.  Frequently the failures are trivial (usually output gets re-ordered), but some are significant changes in behavior that leads us to re-word surrounding guidance in the text, and in a few cases the failures have exposed bugs introduced into Sage.  It has been relatively easy to do this maintenance on a regular basis, and if it had not been done, the accumulated errors would be enough to greatly degrade confidence in the accuracy of the examples.</p>
 
@@ -363,11 +363,12 @@
 
         <p>CoCalc <url href="https://cocalc.com/"><c>cocalc.com</c></url><idx>CoCalc</idx> has <em>all</em> the tools you need to author with MathBook <init>XML</init>.  You will need an upgrade from a subscription to allow Internet connectivity, but at a minimum a colleague with a paid plan can spare you one, they are plentiful and meant to be shared.<ul>
             <li><p>Text editor: reasonably good, partially <init>XML</init> syntax-aware.</p></li>
-            <li><p><c>git</c>: installed (so clone <pretext />).</p></li>
+            <li><p><c>git</c>: installed (so you can clone/pull <pretext/>).</p></li>
+            <li><p><c>jing</c>: installed, so you can do <init>RELAX-NG</init> validation.</p></li>
             <li><p><latex />: installed with many additional packages.</p></li>
-            <li><p>Python: installed, necessary for <c>mbx</c> script.</p></li>
+            <li><p>Python: installed, necessary for <c>pretext</c> script.</p></li>
             <li><p><init>PDF</init> viewer: handed off to your browser.</p></li>
-            <li><p><init>HTML</init> viewer: convert to the <q>raw</q> <init>URL</init> and you can preview.</p></li>
+            <li><p><init>HTML</init> viewer: get a context menu on the cloud icon in the file view, and open in a new tab or new window.</p></li>
             <li><p><init>HTML</init> server: nope.  Zip up output and host elsewhere.</p></li>
         </ul></p>
     </section>

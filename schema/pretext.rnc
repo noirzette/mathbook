@@ -445,6 +445,8 @@
                 Paragraph+,
                 Attribution?
             }
+        SimpleLine =
+            element line {TextSimple}
         ShortLine =
             element line {TextShort}
         LongLine =
@@ -668,6 +670,7 @@
                 MetaDataCaption,
                 (
                     Image |
+                    Tabular |
                     SideBySide |
                     SideBySideGroup |
                     Video |
@@ -986,8 +989,14 @@
         WebWorkAuthored =
             element webwork {
                 attribute seed {xsd:integer}?,
+                element description {
+                    (
+                        TextSimple |
+                        SimpleLine+
+                    )
+                }?,
                 WWMacros?,
-                WWSetup?,
+                element pg-code {text}?,
                 (
                     (StatementExerciseWW, HintWW?, SolutionWW?)
                 |
@@ -1011,10 +1020,6 @@
         WWMacros =
             element pg-macros {
                 element macro-file {text}+
-            }
-        WWSetup =
-            element setup {
-                element pg-code {text}?
             }
         WWVariable =
             ## The WeBWorK "var" element appears in the RELAX-NG schema as a child of many elements, but almost always as a descendant of a "p" element or a "cell" element.  As an element that is only relevant for a WeBWorK problem, occurences of "var" must be within a "webwork" element.  A Schematron rule will check on these two situations.

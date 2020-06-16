@@ -22,7 +22,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!--
 To process this file, at the command-line issue:
 
-xsltproc /path/to/mathbook/xsl/mathbook-html.xsl /path/to/mathbook/examples/sample-article.xml
+xsltproc /path/to/mathbook/xsl/pretext-html.xsl /path/to/mathbook/examples/sample-article.xml
 
 then find  "derivatives.html"  in the current working directory
 and use a web browser to view.  For PDF/print, issue:
@@ -678,7 +678,31 @@ the xsltproc executable.
                     <sage>
                         <input>2+2</input>
                     </sage>
+
+                    <p>We test a Sage cell inside a knowl, which should set the value of a variable that will be available to subsequent cells.</p>
+
+                    <sage>
+                        <input>
+                        a = 6
+                        a
+                        </input>
+                    </sage>
+
+                    <sage>
+                        <input>
+                        b = a + 10
+                        b
+                        </input>
+                    </sage>
                 </example>
+
+                <p>This next Sage cell will not execute properly unless the knowl immediately prior is opened and cells there are executed.</p>
+
+                <sage>
+                    <input>
+                    a + b
+                    </input>
+                </sage>
 
                 <p>We cross-reference the example just prior, <xref ref="example-mysterious" text="type-global" />, to test the simple Sage cell that will now be part of a cross-reference knowl (an external file).</p>
 
@@ -749,6 +773,8 @@ the xsltproc executable.
                         <hint>
                             <p>Start writing!</p>
                         </hint>
+                        <!-- private answer in private solutions file -->
+                        <!-- private solution in private solutions file -->
                     </exercise>
                 </subsubsection>
 
@@ -786,7 +812,7 @@ the xsltproc executable.
                         </solution>
                     </question>
 
-                    <exercise>
+                    <exercise xml:id="inline-exercise">
                         <title>An Inline Exercise</title>
 
                         <statement>
@@ -808,6 +834,9 @@ the xsltproc executable.
                                 <p>Praesent rutrum scelerisque felis sit amet adipiscing. Phasellus in mollis velit. Nunc malesuada felis sit amet massa cursus, eget elementum neque viverra. Integer sagittis dictum turpis vel aliquet. Fusce ut suscipit dolor, nec tristique nisl. Aenean luctus, leo et ornare fermentum, nibh dui vulputate leo, nec tincidunt augue ipsum sed odio. Nunc non erat sollicitudin, iaculis eros consequat, dapibus eros.</p>
                             </proof>
                         </solution>
+                        <!-- private hint in private solutions file -->
+                        <!-- two private solutions in private solutions file -->
+
                     </exercise>
 
                     <example xml:id="example-math-title">
@@ -1244,7 +1273,8 @@ the xsltproc executable.
 
                 <p>Long after we started this mess, we added <pretext /> tags to mark up tags and attributes.  The elements are: <tag>tag</tag>, <tag>tage</tag>, <tag>attr</tag>.  Examples of how these render are (respectively): <tag>section</tag>, <tage>hash</tage>, <attr>width</attr>.  Perhaps this document will make greater use of these tags.</p>
 
-                <p>We supply two incomplete cross-references for testing purposes only: <xref provisional="a first incomplete cross-reference"/>, <xref provisional="a second incomplete cross-reference"/>.</p>
+                <p>We supply two provisional cross-references for testing purposes only: <xref provisional="a first incomplete cross-reference"/>, <xref provisional="a second incomplete cross-reference"/>.</p>
+
             </subsection>
 
             <conclusion>
@@ -2427,7 +2457,7 @@ the xsltproc executable.
                 <idx><latex/> image</idx>
                 <idx><h>image</h><h><latex/> image</h></idx>
 
-                <p>There are several graphics engine packages that a <latex/> document can employ. Code from these packages renders diagrams automatically as part of normal processing of <latex/> files.  For HTML output the <c>mbx</c> script produces SVG versions of the pictures.  The script can also produce standalone <tex/> source files, PDFs, PNGs, and EPSs. The packages should be loaded in <c>docinfo/latex-image-preamble</c>, which is also where global package settings should be made. If any ampersands occur in your <latex/> code you should use the <c>\amp</c> macro pre-defined by <pretext/>. These first examples are from the <url href="http://www.texample.net/tikz/examples/">TeXample.net</url> site.  Note that any <latex /> macros used in the rest of your document may be employed in the <latex/>-standalone or Asymptote diagrams (with this feature coming to Sage graphics next?).</p>
+                <p>There are several graphics engine packages that a <latex/> document can employ. Code from these packages renders diagrams automatically as part of normal processing of <latex/> files.  For HTML output the <c>pretext</c> script produces SVG versions of the pictures.  The script can also produce standalone <tex/> source files, PDFs, PNGs, and EPSs. The packages should be loaded in <c>docinfo/latex-image-preamble</c>, which is also where global package settings should be made. If any ampersands occur in your <latex/> code you should use the <c>\amp</c> macro pre-defined by <pretext/>. These first examples are from the <url href="http://www.texample.net/tikz/examples/">TeXample.net</url> site.  Note that any <latex /> macros used in the rest of your document may be employed in the <latex/>-standalone or Asymptote diagrams (with this feature coming to Sage graphics next?).</p>
 
                 <!-- http://www.texample.net/media/tikz/examples/TEX/noise-shaper.tex -->
                 <figure xml:id="figure-tikz-electronics">
@@ -2651,7 +2681,7 @@ the xsltproc executable.
                     </image>
                 </figure>
 
-                <p>A plot might use a graphics language to draw the axes and grid, but the data might be from an experiment and live in an external file that you do not wish to place in your source.  Place such a file in a subdirectory directly below the directory where your master source file resides.  In the example below <c>data</c> is the directory and <c>hodgkin-huxley-data.dat</c> is the file with the data points.  You <em>must</em> place the file in a subdirectory (it cannot reside next to your source file), but that directory may have subdirectories if you have many such files and want to organize them that way.  Then the <c>--include</c> command-line argument to the <c>mbx</c> script will manage the external files properly as it creates individual image files.</p>
+                <p>A plot might use a graphics language to draw the axes and grid, but the data might be from an experiment and live in an external file that you do not wish to place in your source.  Place such a file in a subdirectory directly below the directory where your master source file resides.  In the example below <c>data</c> is the directory and <c>hodgkin-huxley-data.dat</c> is the file with the data points.  You <em>must</em> place the file in a subdirectory (it cannot reside next to your source file), but that directory may have subdirectories if you have many such files and want to organize them that way.  Then the <c>--include</c> command-line argument to the <c>pretext</c> script will manage the external files properly as it creates individual image files.</p>
 
                 <p>It is still your responsibility to be sure this directory of external data files follows your <latex /> output to whatever directory you use to convert to a PDF and is in the right location for the relative path given in the XML source.  The discussion above only applies to generating individual image files, such as you would need for the HTML output.</p>
 
@@ -2683,7 +2713,7 @@ the xsltproc executable.
             </subsection>
 
             <subsection>
-                <title>Asymptote</title>
+                <title>Asymptote, 2D</title>
 
                 <p>The Asymptote<idx><h>asymptote graphics language</h></idx> graphics language may be placed in your source to draw graphs, diagrams or pictures.  Rules for formatting code are identical to those for Sage code.  For more on Asymptote see <url href="http://asymptote.sourceforge.net/" />.</p>
 
@@ -2734,9 +2764,7 @@ the xsltproc executable.
                     </image>
                 </figure>
 
-                <p>And a colorful contour plot with logarithmic scale.  Again, from the Asymptote documentation.</p>
-
-                <p>This SVG image includes a PNG image for the gradient.  It needs some work and is temporarily unavailable.</p>
+                <p>And a colorful contour plot with logarithmic scale.  Again, from the Asymptote documentation.  This SVG image employs two additional PNG images for the two parts where the color varies continuously.</p>
                 <!-- http://asymptote.sourceforge.net/gallery/2D%20graphs/logimage.asy -->
 
                 <figure xml:id="figure-asymptote-contour-plot">
@@ -2799,9 +2827,82 @@ the xsltproc executable.
                     </image>
                 </figure>
 
-                <p>And finally, an example of a 3-D graph (from the documentation again).</p>
+            </subsection>
 
-                <p>This SVG image includes a PNG image for the gradient.  It needs some work and is temporarily unavailable.</p>
+            <subsection xml:id="graphics-asymptote-webgl">
+                <title>Asymptote, 3D via WebGL</title>
+
+                <p>Asymptote can create an <init>HTML</init> file that is an interactive version of a 3D shape.  At this writing (2020-05-18) support via the <c>pretext</c> script is evolving.  Plus, you will need newer versions of Asymptote and the <c>dvisvgm</c> utility to duplicate all of the results being displayed here in this testing document.  The other distinction is that the author needs to provide the aspect ratio of the figure, and this should be placed on the <tag>asymptote</tag> element (not on the <tag>image</tag> element).  <xref ref="figure-asymptote-workcone" text="type-global"/> is from the <url href="http://asymptote.sourceforge.net/gallery/3Dwebgl/">Asymptote Gallery</url><fn><c>http://asymptote.sourceforge.net/gallery/3Dwebgl/</c></fn>.</p>
+
+                <figure xml:id="figure-asymptote-workcone">
+                    <caption>Work Cone (Asymptote Interactive 3D Image)</caption>
+                    <image xml:id="asymptote-workcone" width="50%">
+                        <!-- aspect ratio from canvas in produced HTML -->
+                        <asymptote aspect="139:151">
+                        import solids;
+                        size(0,150);
+                        currentprojection=orthographic(0,-30,5);
+
+                        real r=4;
+                        real h=10;
+                        real s=8;
+                        real x=r*s/h;
+
+                        real sr=5;
+                        real xr=r*sr/h;
+
+                        real s1=sr-0.1;
+                        real x1=r*s1/h;
+
+                        real s2=sr+0.2;
+                        real x2=r*s2/h;
+
+                        render render=render(compression=0,merge=true);
+
+                        draw(scale(x1,x1,-s1)*shift(-Z)*unitcone,lightblue+opacity(0.5),render);
+
+                        path3 p=(x2,0,s2)--(x,0,s+0.005);
+                        revolution a=revolution(p,Z);
+                        draw(surface(a),lightblue+opacity(0.5),render);
+
+                        path3 q=(x,0,s)--(r,0,h);
+                        revolution b=revolution(q,Z);
+                        draw(surface(b),white+opacity(0.5),render);
+
+                        draw((-r-1,0,0)--(r+1,0,0));
+                        draw((0,0,0)--(0,0,h+1),dashed);
+
+                        path3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
+                        revolution b=revolution(w,Z);
+                        draw(surface(b),blue+opacity(0.5),render);
+                        draw(circle((0,0,s2),x2));
+                        draw(circle((0,0,s1),x1));
+
+                        draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow3,PenMargin3);
+                        draw("$r$",(0,0,sr)--(xr,0,sr),N,red);
+                        draw((string) r,(0,0,h)--(r,0,h),N,red);
+                        draw((string) h,(r,0,0)--(r,0,h),red,Arrow3,PenMargin3);
+                        draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow3,Bar3,PenMargin3);
+                        </asymptote>
+                    </image>
+                </figure>
+
+                <p>These 3D images in HTML output are rotable with a pointing device (mouse, trackpad) with a click-and-drag.  A finger should suffice on touch-sensitive devices (phones, tablets).  As a contribution to the accessibility of <pretext/> HTML output, keyboard controls will also allow for exploration of these images.  (Make sure the image has focus when you attempt to use these.)</p>
+
+                <table>
+                    <title>3D Image Keyboard Controls</title>
+                    <tabular>
+                        <row bottom="medium"><cell>Key</cell><cell>Action</cell></row>
+                        <row><cell><kbd>x</kbd></cell><cell>Rotate around <m>x</m>-axis</cell></row>
+                        <row><cell><kbd>y</kbd></cell><cell>Rotate around <m>y</m>-axis</cell></row>
+                        <row><cell><kbd>z</kbd></cell><cell>Rotate around <m>z</m>-axis</cell></row>
+                        <row><cell><kbd>+</kbd></cell><cell>Enlarge image</cell></row>
+                        <row><cell><kbd>-</kbd></cell><cell>Shrink image</cell></row>
+                        <row><cell><kbd>h</kbd></cell><cell>Return to home position</cell></row>
+                    </tabular>
+                </table>
+
+                <p>And finally, an example of a 3-D graph (from the Asymptote documentation again).  This SVG image is a beautiful example of a Riemann surface.  As you rotate the image, notice how the reflection of the light source varies, along with the brightness of various regions of the surface.  This example is accomplished with just 10 lines of Asymptote code.</p>
 
                 <!-- http://asymptote.sourceforge.net/gallery/3D%20graphs/filesurface.asy -->
                 <!-- Projection point adjusted by Michael Doob -->
@@ -2831,69 +2932,11 @@ the xsltproc executable.
                 </figure>
             </subsection>
 
-            <subsection xml:id="graphics-asymptote-webgl">
-                <title>Asymptote + WebGL</title>
-
-                <p>Asymptote can create an <init>HTML</init> file that is an interactive version of a 3D shape.  At this writing (2019-10-21) we do not have support via the <c>mbx</c> script for producing these files, so you are on your own in the early going.  The other distinction is that the author needs to provide the aspect ratio of the figure, and this should be placed on the <tag>asymptote</tag> element (not on the <tag>image</tag> element).  <xref ref="figure-asymptote-workcone" text="type-global"/> is from the <url href="http://asymptote.sourceforge.net/gallery/3Dwebgl/">Asymptote Gallery</url><fn><c>http://asymptote.sourceforge.net/gallery/3Dwebgl/</c></fn>.</p>
-
-
-                <figure xml:id="figure-asymptote-workcone">
-                    <caption>Work Cone (Asymptote Interactive 3D Image)</caption>
-                    <image xml:id="asymptote-workcone" width="50%">
-                        <!-- aspect ratio from canvas in produced HTML -->
-                        <asymptote aspect="139:151">
-                        import solids;
-                        size(0,150);
-                        currentprojection=orthographic(0,-30,5);
-
-                        real r=4;
-                        real h=10;
-                        real s=8;
-                        real x=r*s/h;
-
-                        real sr=5;
-                        real xr=r*sr/h;
-
-                        real s1=sr-0.1;
-                        real x1=r*s1/h;
-
-                        real s2=sr+0.2;
-                        real x2=r*s2/h;
-
-                        render render=render(compression=0,merge=true);
-
-                        path3 p=(0,0,0)--(x,0,s);
-                        revolution a=revolution(p,Z);
-                        draw(surface(a,4),lightblue+opacity(0.5),render);
-
-                        path3 q=(x,0,s)--(r,0,h);
-                        revolution b=revolution(q,Z);
-                        draw(surface(b),white+opacity(0.5),render);
-
-                        draw((-r-1,0,0)--(r+1,0,0));
-                        draw((0,0,0)--(0,0,h+1),dashed);
-
-                        path3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
-                        revolution b=revolution(w,Z);
-                        draw(surface(b),blue+opacity(0.5),render);
-                        draw(circle((0,0,s2),x2));
-                        draw(circle((0,0,s1),x1));
-
-                        draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow3,PenMargin3);
-                        draw("$r$",(0,0,sr)--(xr,0,sr),N,red);
-                        draw((string) r,(0,0,h)--(r,0,h),N,red);
-                        draw((string) h,(r,0,0)--(r,0,h),red,Arrow3,PenMargin3);
-                        draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow3,Bar3,PenMargin3);
-                        </asymptote>
-                    </image>
-                </figure>
-            </subsection>
-
             <subsection>
                 <title>Sage Plots</title>
                 <idx><h>Sage plots</h></idx>
 
-                <p>Any of the numerous capabilities of Sage may be used to produce any graphics object, be it the simple graph of a single-variable function or some realization of a more complicated object.  All of the usual rules about formatting Sage code (esp. indentation) apply, along with one more caveat.  The last line of your Sage code <alert>must</alert> return a Sage <c>Graphics</c> object (or 3D plot).  The <c>mbx</c> script will isolate this last line, use it as the RHS of an assignment statement, and the Sage <c>.save()</c> method will be called to generate the image, which is either a Portable Document Format (PDF) file amenable to <latex /> output, or a Scalable Vector Graphics (SVG) file amenable to HTML output.  For visualizations of 3D plots, Sage will only produce Portable Network Graphics (PNG) files, which can be included in HTML pages or <latex /> output.</p>
+                <p>Any of the numerous capabilities of Sage may be used to produce any graphics object, be it the simple graph of a single-variable function or some realization of a more complicated object.  All of the usual rules about formatting Sage code (esp. indentation) apply, along with one more caveat.  The last line of your Sage code <alert>must</alert> return a Sage <c>Graphics</c> object (or 3D plot).  The <c>pretext</c> script will isolate this last line, use it as the RHS of an assignment statement, and the Sage <c>.save()</c> method will be called to generate the image, which is either a Portable Document Format (PDF) file amenable to <latex /> output, or a Scalable Vector Graphics (SVG) file amenable to HTML output.  For visualizations of 3D plots, Sage will only produce Portable Network Graphics (PNG) files, which can be included in HTML pages or <latex /> output.</p>
 
                 <figure xml:id="figure-sage-parabola">
                     <caption>A Sage standard parabola, on <m>[-2,4]</m></caption>
@@ -3017,7 +3060,7 @@ the xsltproc executable.
                     <image source="images/cross-square.png" width="30%" />
                 </figure>
 
-                <p>If you have a figure generated from source code (such as in TikZ) you can place the code into a file and <c>xinclude</c> it twice.  The <c>mbx</c> script will make two copies if you include the source twice, but with different names (generated from the different <c>@xml:id</c>).  Furthermore, with the <c>@parse</c> attribute on the <c>xinclude</c> element set to <c>text</c> you are absolved from escaping the dangerous XML characters (see <xref ref="subsection-xml-escape" text="type-global"/>) and definitely have no need for the often mis-understood <c>CDATA</c> mechanism.  We demonstrate this with the sample book, since it is all set up with the <c>xinclude</c> mechanism.  See the two plots of the 8-th roots of unity in the complex numbers section of the chapter on cyclic groups.</p>
+                <p>If you have a figure generated from source code (such as in TikZ) you can place the code into a file and <c>xinclude</c> it twice.  The <c>pretext</c> script will make two copies if you include the source twice, but with different names (generated from the different <c>@xml:id</c>).  Furthermore, with the <c>@parse</c> attribute on the <c>xinclude</c> element set to <c>text</c> you are absolved from escaping the dangerous XML characters (see <xref ref="subsection-xml-escape" text="type-global"/>) and definitely have no need for the often mis-understood <c>CDATA</c> mechanism.  We demonstrate this with the sample book, since it is all set up with the <c>xinclude</c> mechanism.  See the two plots of the 8-th roots of unity in the complex numbers section of the chapter on cyclic groups.</p>
             </subsection>
 
             <subsection>
@@ -3212,7 +3255,7 @@ the xsltproc executable.
             <subsection>
                 <title>Technical Details</title>
 
-                <p>The table below is a summary of how graphics and images are specified, constructed and manipulated.  Additional processing is indicated by reference to the Python script <c>mbx</c>.  Images need to be placed relative to the <latex /> file that includes them during compilation, and placed relative to the <init>HTML</init> files which reference/include them.  Author-provided image files may be placed in any subdirectory, and the <c>@source</c> attribute should include the complete relative path with the subdirectory.  Files generated by the <c>mbx</c> script will be specified in the output using the relative directory <c>images</c>, which can be changed using the <c>directory.images</c> stringparam.  There is no reason author-provided files cannot also be placed in this same directory (presuming no duplicate names). [This table is presently more readable in HTML, the PDF version will improve.]</p>
+                <p>The table below is a summary of how graphics and images are specified, constructed and manipulated.  Additional processing is indicated by reference to the Python script <c>pretext</c>.  Images need to be placed relative to the <latex /> file that includes them during compilation, and placed relative to the <init>HTML</init> files which reference/include them.  Author-provided image files may be placed in any subdirectory, and the <c>@source</c> attribute should include the complete relative path with the subdirectory.  Files generated by the <c>pretext</c> script will be specified in the output using the relative directory <c>images</c>, which can be changed using the <c>directory.images</c> stringparam.  There is no reason author-provided files cannot also be placed in this same directory (presuming no duplicate names). [This table is presently more readable in HTML, the PDF version will improve.]</p>
 
                 <sidebyside>
                     <tabular top="medium" bottom="minor">
@@ -3244,23 +3287,23 @@ the xsltproc executable.
                             <cell><c>image/latex-image-code</c></cell>
                             <cell><latex />-compatible source</cell>
                             <cell>directly included</cell>
-                            <cell><init>SVG</init> via <c>mbx</c></cell>
+                            <cell><init>SVG</init> via <c>pretext</c></cell>
                             <cell><eg /> tikz, pgfplots, xypic</cell>
                         </row>
 
                         <row>
                             <cell><c>image/sageplot</c></cell>
                             <cell>Sage code</cell>
-                            <cell><init>PDF</init> via <c>mbx</c></cell>
-                            <cell><init>SVG</init> via <c>mbx</c></cell>
+                            <cell><init>PDF</init> via <c>pretext</c></cell>
+                            <cell><init>SVG</init> via <c>pretext</c></cell>
                             <cell><init>PNG</init> for 3-D</cell>
                         </row>
 
                         <row>
                             <cell><c>image/asymptote</c></cell>
                             <cell>Asymptote code</cell>
-                            <cell><init>PDF</init> via <c>mbx</c></cell>
-                            <cell><init>SVG</init> via <c>mbx</c></cell>
+                            <cell><init>PDF</init> via <c>pretext</c></cell>
+                            <cell><init>SVG</init> via <c>pretext</c></cell>
                             <cell></cell>
                         </row>
 
@@ -3268,7 +3311,7 @@ the xsltproc executable.
                     </tabular>
                 </sidebyside>
 
-                <p>In the early stages of a writing project, it may be best not to track provisional image files built with <c>mbx</c> under version control, and just regenerate them periodically (see the <c>-r</c> option for <c>mbx</c>).  As a project matures, then it makes sense to put stable files under version control for collaborators and others.  In every case, managing graphics files (and other aspects of production), is much more pleasurable with a script (shell, Makefile, etc.)</p>
+                <p>In the early stages of a writing project, it may be best not to track provisional image files built with <c>pretext</c> under version control, and just regenerate them periodically (see the <c>-r</c> option for <c>pretext</c>).  As a project matures, then it makes sense to put stable files under version control for collaborators and others.  In every case, managing graphics files (and other aspects of production), is much more pleasurable with a script (shell, Makefile, etc.)</p>
             </subsection>
         </section>
 
@@ -3694,6 +3737,19 @@ the xsltproc executable.
                     <li><p>Level 1, fourth.  Whose number should not change when the knowl just prior is opened.</p></li>
                 </ol></p>
 
+                <p>An ordered list may begin at zero by using a numeral zero in the <attr>label</attr> attribute, instead of numeral one.<ol label="(0)">
+                    <li>First</li>
+                    <li>
+                        <p>Second<ol label="-0-">
+                            <li>Uno</li>
+                            <li>Dos</li>
+                            <li>Tres</li>
+                        </ol></p>
+                    </li>
+                    <li>Third</li>
+                </ol></p>
+
+
                 <p>The next definition is very poorly worded.  It is meant to test leading off with a list (bad form), for which <latex /> normally begins right after the heading.</p>
 
                 <definition>
@@ -3905,6 +3961,38 @@ the xsltproc executable.
                       </li>
                   </ul>
               </p>
+
+              <p>
+                Inclusion of any text other than math will kill the automatic display style.
+                For example, this would happen if one were to add punctuation after the math.
+              </p>
+
+              <p>
+                <ul>
+                  <li><m>\int_a^b \frac{\sin(x)}{x}\,dx</m>,</li>
+                  <li><m>\int_a^b \frac{\sin(x)}{x}\,dx</m></li>
+                </ul>
+              </p>
+
+              <p>List items can have titles.  We try that here, along with testing list items structured with paragraphs.<ul>
+                <li>
+                  <title>With <c>\displaystyle</c> added automatically</title>
+                  <p><m>\sum_{n=1}^\infty ar^n</m></p>
+                </li>
+                <li>
+                  <title>Two paragraphs</title>
+                  <p><m>\sum_{n=1}^\infty ar^n</m></p>
+                  <p><m>\sum_{n=1}^\infty ar^n</m></p>
+                </li>
+                <li>
+                  <title>One paragraph, extra text</title>
+                  <p>So, <m>\sum_{n=1}^\infty ar^n</m></p>
+                </li>
+                <li>
+                  <title>Two elements (only)</title>
+                  <p><latex/><m>\sum_{n=1}^\infty ar^n</m></p>
+                </li>
+              </ul></p>
             </subsection>
 
             <subsection>
@@ -4162,10 +4250,10 @@ the xsltproc executable.
 
             <p>Note that tables may be constructed using the <url href="http://www.latex-tables.com/"><latex /> Complex Table Editor</url> tool online at <c>latex-tables.com</c>and then exported in <pretext /> syntax.</p>
 
-            <p>Tables can be used many ways.  We describe long division of polynomials by using vertical and horizontal borders on individual entries of a table.  The division lines are slightly thicker than the subtraction lines.  This is a good example of the typical abuse of tables for horizontal and vertical layout.  Also indicative of this abuse is that it might make more sense to call this a <q>Figure,</q> not a <q>Table</q>.</p>
+            <p>Tables can be used and abused many ways.  We describe long division of polynomials by using vertical and horizontal borders on individual entries of a <tag>tabular</tag>.  The division lines are slightly thicker than the subtraction lines.  This is a good example of the typical abuse of tables for horizontal and vertical layout.  At least we have called it a <q>Figure,</q> not a <q>Table</q>.</p>
 
-            <table>
-                <title>Polynomial Long Division</title>
+            <figure>
+                <caption>Polynomial Long Division</caption>
                 <tabular halign="right">
                     <row>
                         <cell></cell>
@@ -4228,7 +4316,7 @@ the xsltproc executable.
                         <cell><m>2</m></cell>
                     </row>
                 </tabular>
-            </table>
+            </figure>
 
             <p>The next table describes how to construct tables via the <c>tabular</c> element.  The <c>table</c> element may be used to enclose the raw table, so as to associate a caption and get vertical separation with horizontal centering.</p>
 
@@ -5240,8 +5328,10 @@ the xsltproc executable.
                 <figure xml:id="figure-interactive-numerical-integral">
                     <caption>Numerical integrals using the midpoint rule</caption>
 
-                    <interactive xml:id="interactive-numerical-integral" platform="sage" width="100%" aspect="2:3">
-                        <!-- Changes: gave 3 input boxes widths -->
+                    <interactive xml:id="interactive-numerical-integral" platform="sage" width="100%" aspect="4:5">
+                      <!-- Changes: gave 3 input boxes widths -->
+		      <!-- Changes: Escaped \ inside LaTeX -->
+		      <!-- Changes: Added figsize=5 to show -->
                         <slate surface="sage">
                         var('x')
                         @interact
@@ -5260,10 +5350,10 @@ the xsltproc executable.
                             min_y = min(0, find_local_minimum(func,a,b)[0])
                             max_y = max(0, find_local_maximum(func,a,b)[0])
                             pretty_print(html('&lt;h3&gt;Numerical integrals with the midpoint rule&lt;/h3&gt;'))
-                            pretty_print(html('$\int_{a}^{b}{f(x) dx} {\\approx} \sum_i{f(x_i) \Delta x}$'))
-                            print "\n\nSage numerical answer: " + str(integral_numerical(func,a,b,max_points = 200)[0])
-                            print "Midpoint estimated answer: " + str(RDF(dx*sum([midys[q] for q in range(n)])))
-                            show(plot(func,a,b) + rects, xmin = a, xmax = b, ymin = min_y, ymax = max_y)
+                            pretty_print(html('$\\int_{a}^{b}{f(x) dx} {\\approx} \\sum_i{f(x_i) \\Delta x}$'))
+                            print("\n\nSage numerical answer: " + str(integral_numerical(func,a,b,max_points = 200)[0]))
+                            print("Midpoint estimated answer: " + str(RDF(dx*sum([midys[q] for q in range(n)]))))
+                            show(plot(func,a,b) + rects, xmin = a, xmax = b, ymin = min_y, ymax = max_y,figsize=5)
                         </slate>
                     </interactive>
                 </figure>
@@ -5629,7 +5719,7 @@ the xsltproc executable.
                     </figure>
                 </sidebyside>
 
-                <p>Videos may be embedded, or popped-out to play in a new window or tab (at greater width), or a link will give the reader the option to choose either style of playback.  The automatic pop-out option requires a static thumbnail image.  (For YouTube, these images can be obtained automatically with the <c>mbx</c> script.)</p>
+                <p>Videos may be embedded, or popped-out to play in a new window or tab (at greater width), or a link will give the reader the option to choose either style of playback.  The automatic pop-out option requires a static thumbnail image.  (For YouTube, these images can be obtained automatically with the <c>pretext</c> script.)</p>
 
                 <figure>
                     <caption>YouTube Play Location Options (<c>play-at</c> attribute)</caption>
@@ -6255,7 +6345,7 @@ the xsltproc executable.
                 </program>
             </sidebyside>
 
-            <p>Look in the <c>mathbook-common.xsl</c> file to see the strings to use to identify languages.  Always all-lowercase, no symbols, no punctuation.</p>
+            <p>Look in the <c>pretext-common.xsl</c> file to see the strings to use to identify languages.  Always all-lowercase, no symbols, no punctuation.</p>
 
             <p>Note that the above examples all have slightly different widths (theser are very evident in print with the frames).  As 2-D atomic objects, to place them in the narrative requires the layout features of a <c>sidebyside</c> element.  Then <c>width</c> and/or <c>margin</c> attributes will influence the width of the panel.</p>
 
@@ -6558,7 +6648,7 @@ the xsltproc executable.
             </quantity>
             in a full circle.</p>
 
-            <p>For a full list of the allowed units and prefixes, see <c>mathbook-units.xsl</c>. If you have a need for more units, they need to be added to <c>mathbook-units.xsl</c> in the section that deals with units which are not part of <c>siunitx</c> by default.  Note that the <c>mag</c> element should come first, followed by the <c>unit</c> element, followed by the <c>per</c> element.</p>
+            <p>For a full list of the allowed units and prefixes, see <c>pretext-units.xsl</c>. If you have a need for more units, they need to be added to <c>pretext-units.xsl</c> in the section that deals with units which are not part of <c>siunitx</c> by default.  Note that the <c>mag</c> element should come first, followed by the <c>unit</c> element, followed by the <c>per</c> element.</p>
 
         </section>
 

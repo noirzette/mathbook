@@ -36,7 +36,7 @@
 
         <p>Once you have divisions, what do you put into them?  Most likely, paragraphs<idx>paragraph</idx>.  We use long, exact names for tags that are used infrequently, like <tag>subsubsection</tag>.  But for frequently used elements, we use abbreviated tags, often identical to names used in <init>HTML</init>.  So a paragraph is delimited by simply the <tag>p</tag> tag.</p>
 
-        <p>Lots of things can happen in paragraphs, some things can <em>only</em> happen in a paragraph, and some things are <em>banned</em> in paragraphs.  Inside a paragraph, you can emphasize some text (<tag>em</tag>), you can quote some text (<tag>q</tag>), you can mark a phrase as being from another language (<tag>foreign</tag>), and much more.  You can use almost any character your keyboard can produce, but need to be careful with the three <init>XML</init> special characters: ampersand (&amp;), less than (&lt;), and rarely, greater than (&gt;).  (See <xref ref="overview-special-characters"/>.) You must put a list inside a paragraph, and all mathematics (<xref ref="overview-math" />) will occur inside a paragraph.  You cannot put a <tag>table</tag> or a <tag>figure</tag> in a paragraph, and many other structured components are prohibited in paragraphs.</p>
+        <p>Lots of things can happen in paragraphs, some things can <em>only</em> happen in a paragraph, and some things are <em>banned</em> in paragraphs.  Inside a paragraph, you can emphasize some text (<tag>em</tag>), you can quote some text (<tag>q</tag>), you can mark a phrase as being from another language (<tag>foreign</tag>), and much more.  You can use almost any character your keyboard can produce, but need to be careful with the three <init>XML</init> exceptional characters: ampersand (&amp;), less than (&lt;), and rarely, greater than (&gt;).  (See <xref ref="overview-exceptional-characters"/>.) You must put a list inside a paragraph, and all mathematics (<xref ref="overview-math" />) will occur inside a paragraph.  You cannot put a <tag>table</tag> or a <tag>figure</tag> in a paragraph, and many other structured components are prohibited in paragraphs.</p>
 
         <p>Paragraphs are also used as part of the structure of other parts of your document.  For example, a <tag>remark</tag> could be composed of several <tag>p</tag>.  As you get started with <pretext />, remember that much of your actual writing will occur inside of a <tag>p</tag> and you will have a collection of tags you can use there to express your meaning to your readers.</p>
 
@@ -190,9 +190,10 @@
         <p>A <tag>program</tag> or <tag>console</tag> may be wrapped in a <tag>listing</tag>, which is analogous to a <tag>figure</tag> or <tag>table</tag>.  A <tag>listing</tag> may contain a <tag>title</tag> for use in cross-references or lists.  A <tag>caption</tag> will be displayed and will generate a number.</p>
     </section>
 
-    <section xml:id="overview-special-characters">
-        <title>Special Characters</title>
-        <idx>special character</idx>
+    <section xml:id="overview-exceptional-characters">
+        <title>Exceptional Characters</title>
+        <idx>exceptional characters</idx>
+        <idx><h>characters</h><h>exceptional</h></idx>
 
         <p>An advantage of XML syntax is that very few characters are reserved for the language's use, and thus very few characters need to be escaped.  Of course, there is always the need to escape the escape character.</p>
 
@@ -200,7 +201,7 @@
 
         <p>These first two characters are interpreted by the <init>XML</init> processor very early in the analysis of your source.  So they need to be authored specially via the <term>XML entities</term> <c>&amp;amp;</c> and <c>&amp;lt;</c>.  In practice, escaping <c>&gt;</c> is rarely necessary.  So fundamentally within <pretext/> there are just two characters to type carefully or exceptionally.</p>
 
-        <p>If you consistently follow the prescription in the previous paragraph you will avoid a descent into escape-character hell and avoid a lot of head-scratching.  In particular, you should have no need of the <c>&lt;![CDATA[</c><nbsp /><c>]]&gt;</c> mechanism of <init>XML</init>, so <em>please</em> just forget we even mentioned it.</p>
+        <p>If you consistently follow the prescription in the previous paragraph you will avoid a descent into escape-character hell and avoid a lot of head-scratching.  In particular, you should have no need of the <c>&lt;![CDATA[</c><nbsp /><c>]]&gt;</c> mechanism of <init>XML</init>, so <em>please</em> just forget we even mentioned it.  But see <xref ref="topic-exceptional-characters"/> if you are curious, or want a more thorough discussion.</p>
     </section>
 
     <section xml:id="overview-nontrivial-characters">
@@ -208,7 +209,7 @@
         <idx>nontrivial characters</idx>
         <idx><h>characters</h><h>nontrivial</h></idx>
 
-        <p>Quality typography is more expansive than the limited capabilities of computer keyboards, whose history is rooted in the machines known as typewriters.  Some characters are never present on a keyboard (e.g., a pilcrow), while others are ambiguous.  Is a diagonal line a slash used to separate information (either/or), or is it a solidus used to form a simple fraction such as 3<solidus/>4? <xref ref="table-nontrivial-characters"/> is a <em>sample</em> of how <pretext/> addresses this.  (The last two are the technical exceptions imposed by using a markup language, see <xref ref="overview-special-characters"/>.) See <xref ref="topic-paragraphs"/> for a more comprehensive and detailed discussion.</p>
+        <p>Quality typography is more expansive than the limited capabilities of computer keyboards, whose history is rooted in the machines known as typewriters.  Some characters are never present on a keyboard (e.g., a pilcrow), while others are ambiguous.  Is a diagonal line a slash used to separate information (either/or), or is it a solidus used to form a simple fraction such as 3<solidus/>4? <xref ref="table-nontrivial-characters"/> is a <em>sample</em> of how <pretext/> addresses this.  (The last two are the technical exceptions imposed by using a markup language, see <xref ref="overview-exceptional-characters"/>.) See <xref ref="topic-paragraphs"/> for a more comprehensive and detailed discussion.</p>
 
         <table xml:id="table-nontrivial-characters">
             <title>Nontrivial Characters</title>
@@ -304,7 +305,7 @@
 
         <p>For the content of a <tag>pre</tag> element, the indentation will be preserved, though an equal amount of leading whitespace will be stripped from every line, so as to keep the code shifted left as far as possible.</p>
 
-        <p>The behavior of these two tags is to preserve characters exactly.  Certainly the <acro>ASCII</acro> character set will behave as expected, and Unicode characters will migrate successfully to output formats based on <init>HTML</init>.  As mentioned in <xref ref="overview-special-characters" /> the ampersand and left angle bracket will confuse the initial XML processing.  So use the XML entities <c>&amp;amp;</c> and <c>&amp;lt;</c> to represent these characters to the XML processor, <c>xsltproc</c>.  See <xref ref="topic-verbatim-literal" /> for further details.</p>
+        <p>The behavior of these two tags is to preserve characters exactly.  Certainly the <acro>ASCII</acro> character set will behave as expected, and Unicode characters will migrate successfully to output formats based on <init>HTML</init>.  As mentioned in <xref ref="overview-exceptional-characters" /> the ampersand and left angle bracket will confuse the initial XML processing.  So use the XML entities <c>&amp;amp;</c> and <c>&amp;lt;</c> to represent these characters to the XML processor, <c>xsltproc</c>.  See <xref ref="topic-verbatim-literal" /> for further details.</p>
     </section>
 
     <section xml:id="overview-sage">
@@ -312,7 +313,7 @@
 
         <p><url href="http://www.sagemath.org/">Sage</url><idx>Sage</idx> is an open source library of computational routines for symbolic, exact and numerical mathematics.  It is designed to be a <q>viable free open source alternative to Magma, Maple, Mathematica, and Matlab.</q>  <pretext /> contains extensive support for including example Sage into your document.</p>
 
-        <p>A typical use of the <tag>sage</tag> tag is to include an <tag>input</tag> element, followed by an <tag>output</tag> element.  The content of the <tag>input</tag> element may be presented statically in PDF output, or dynamically as a Sage Cell<idx>Sage cell</idx> in an output format based on HTML.  Of course, for output as a CoCalc worksheet, the Sage code is presented in the worksheet's native format.</p>
+        <p>A typical use of the <tag>sage</tag> tag is to include an <tag>input</tag> element, followed by an <tag>output</tag> element.  The content of the <tag>input</tag> element may be presented statically in PDF output, or dynamically as a Sage Cell<idx>Sage cell</idx> in an output format based on HTML.  Of course, for output as a CoCalc or Jupyter worksheet, the Sage code is presented in the worksheet's native format.</p>
 
         <p>The content of the <tag>output</tag> element is included in PDF output, but not in dynamic instances, since it can be re-computed.  Notably, there is a conversion which pairs input and output into a single file in the format used by Sage's <c>doctest</c> framework.  So if expected output is provided, it becomes automatic to identify when Sage has diverged from your expectations, and you can adjust your examples accordingly.</p>
 
@@ -420,6 +421,21 @@
         <p>This would be rendered as <quantity><mag>20.7</mag><unit prefix="kilo" base="gram"/><unit base="meter"/><per base="second" exp="2"/></quantity>.  More in <xref ref="topic-units-measure" />.</p>
     </section>
 
+    <section xml:id="overview-localization">
+        <title>Localization</title>
+        <idx>localization</idx>
+        <idx>internationalization</idx>
+
+        <p>We are interested in helping authors produce documents with open licenses around the entirety of the world.  <pretext/> provides infrastructure for doing so (or <term>internationalization</term>) in accordance with guidelines of the <url href="https://www.w3.org/International/">W3C Internationalization (I18n) Activity</url><fn><c>www.w3.org/International/</c></fn> at <init>W3C</init> (<c>www.w3.org</c>).</p>
+
+        <p>In order to actually adapt <pretext /> to another language (<term>localization</term>), there are two requirements:
+          <ul>
+            <li>A file for localization into the desired locale.</li>
+            <li>The author adds an <c>xml:lang</c> attribute on the <tag>pretext</tag> element.</li>
+        </ul>See <xref ref="topic-localization" /> for more details.</p>
+
+    </section>
+
     <section xml:id="overview-accessibility">
         <title>Accessibility</title>
         <idx>accessibility</idx>
@@ -434,7 +450,7 @@
             <p>Thus the impact of disability is radically changed on the Web because the Web removes barriers to communication and interaction that many people face in the physical world. However, when websites, web technologies, or web tools are badly designed, they can create barriers that exclude people from using the Web.</p>
         </blockquote>
 
-        <p>Since we are interested in helping authors produce documents with open licenses, and we concentrate on employing open standards for the <init>HTML</init> output we create, we are ideally positioned to help you easily create highly-accessible documents.  There are many technical features which happen automatically, and there are some features which we make available for your use as an author and which only an author can provide.  See <xref ref="topic-accessibility" /> for full details and ways you can make the <init>HTML</init> version of your document more accessible, and more useful for a wider audience.</p>
+        <p>Since we are interested in helping authors produce documents with open licenses, and we concentrate on employing open standards for the <init>HTML</init> output we create, we are ideally positioned to help you easily create highly-accessible documents.  There are many technical features which happen automatically, and there are some features which we make available for your use as an author and which only an author can provide, or elect to use.  Before getting too deep into your project, review <xref ref="topic-accessibility" /> for full details and ways you can make the <init>HTML</init> version of your document more accessible, and more useful for a wider audience.</p>
     </section>
     <section xml:id="overview-slides">
       <title>Slides</title>

@@ -51,7 +51,7 @@ def mathjax_latex(xml_source, result, math_format):
     # SVG, MathML, and PNG are visual and we help authors move punctuation into
     # displays, but not into inline versions.  Nemeth braille and speech are not,
     # so we leave punctuation outside.
-    if math_format in ['svg', 'mml']:
+    if math_format in ['svg', 'mml', 'kindle']:
         punctuation = 'display'
     elif math_format in ['nemeth', 'speech']:
         punctuation = 'none'
@@ -70,9 +70,7 @@ def mathjax_latex(xml_source, result, math_format):
         # kill caching to keep glyphs within SVG
         # versus having a font cache at the end
         mjpage_cmd = [mjpage_exec, '--output', 'SVG', '--noGlobalSVG', 'true']
-    elif math_format == 'mml':
-        mjpage_cmd = [mjpage_exec, '--output', 'MML']
-    elif math_format in ['nemeth', 'speech']:
+    elif math_format in ['mml', 'kindle', 'nemeth', 'speech']:
         # MathML is precursor for SRE outputs
         mjpage_cmd = [mjpage_exec, '--output', 'MML']
     else:
@@ -362,6 +360,11 @@ def webwork_to_xml(xml_source, abort_early, server_params, dest_dir):
         msg = 'PTX:ERROR: failed to import requests module, is it installed?'
         raise ValueError(msg)
 
+    # N.B. accepting a publisher file and passing it the extraction step
+    # runs the risk of specifying a representations file, so there is then
+    # nothing left to extract after substitutions.  Only relevant if an
+    # assembly step is needed, such as adding in private solutions
+
     # execute XSL extraction to get back four dictionaries
     # where the keys are the internal-ids for the problems
     # origin, seed, source, pg
@@ -468,10 +471,10 @@ def webwork_to_xml(xml_source, abort_early, server_params, dest_dir):
     # End preparation for getting static versions
 
     # begin writing single .xml file with all webwork representations
-    include_file_name = os.path.join(dest_dir, "webwork-extraction.xml")
+    include_file_name = os.path.join(dest_dir, "webwork-representations.ptx")
     try:
          with open(include_file_name, 'w') as include_file:
-            include_file.write('<?xml version="1.0" encoding="UTF-8" ?>\n<webwork-extraction>\n')
+            include_file.write('<?xml version="1.0" encoding="UTF-8" ?>\n<webwork-representations>\n')
     except Exception as e:
         root_cause = str(e)
         msg = "PTX:ERROR: there was a problem writing a problem to the file: {}\n"
@@ -743,7 +746,7 @@ def webwork_to_xml(xml_source, abort_early, server_params, dest_dir):
             ww_image_path, ww_image_filename = os.path.split(ww_image_full_path)
             # split the filename into (name, extension). extension can be empty or like '.png'.
             ww_image_name, image_extension = os.path.splitext(ww_image_filename)
-            # rename, eg, webwork-extraction/webwork-5-image-3.png
+            # rename, eg, webwork-representations/webwork-5-image-3.png
             ptx_image_name =  problem + '-image-' + str(count)
             ptx_image_filename = ptx_image_name + image_extension
             if ww_image_scheme:
@@ -838,10 +841,10 @@ def webwork_to_xml(xml_source, abort_early, server_params, dest_dir):
             msg = "PTX:ERROR: there was a problem writing a problem to the file: {}\n"
             raise ValueError(msg.format(include_file_name) + root_cause)
 
-    # close webwork-extraction tag and finish
+    # close webwork-representations tag and finish
     try:
         with open(include_file_name, 'a') as include_file:
-            include_file.write('</webwork-extraction>')
+            include_file.write('</webwork-representations>')
     except Exception as e:
         root_cause = str(e)
         msg = "PTX:ERROR: there was a problem writing a problem to the file: {}\n"
@@ -1250,6 +1253,11 @@ def xsltproc(xsl, xml, result, output_dir=None, stringparams={}):
     output_dir   - a directory for exsl:document() templates to write to
     stringparams - a dictionary of option/value string:string pairs to
                    pass to  xsl:param  elements of the stylesheet
+
+    N.B. The value of a "publisher" string parameter passed in the
+    "stringparams" argument must be a complete path, since a relative
+    path can be rendered incorrect by the change to an "output_dir"
+    different than that at the time of the command-line invocation.
     """
     import os
     import lxml.etree as ET
